@@ -1,0 +1,13 @@
+{
+  "name": "minha-voz",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.9"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server/index.mjs",
+    "test": "node --test server/*.test.mjs"
+  }
+}
