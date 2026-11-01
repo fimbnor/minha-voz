@@ -78,13 +78,13 @@ Recorte experimental de pessoas com MediaPipe Tasks Vision 0.10.21 e Selfie Segm
 
 ## Editor no celular
 
-O fluxo tem sete telas: Formato, Modelo, Foto, Texto, Visual, IA e Baixar. A navegação permite voltar aos ajustes sem perder o trabalho. Tratamento de foto fica em um painel recolhido, aberto quando necessário.
+O fluxo começa com Formato e fundo. Para fundo com imagem, segue para escolher um modelo ou enviar uma imagem; para cor sólida, pula essa etapa. Depois vêm Foto e logotipo, Texto e assinatura, IA e Baixar. Fonte e tamanho ficam com o texto; upload e ajustes de logotipo ficam com a foto. A antiga tela Visual foi removida. A navegação permite voltar aos ajustes sem perder o trabalho. Tratamento de foto fica em um painel recolhido, aberto quando necessário.
 
 No celular, o botão **Preview** fica dentro da área de edição, no canto superior direito. Ele abre o card sobre os ajustes. As quatro alças dos cantos permitem redimensionar a imagem, desde uma miniatura de aproximadamente 80 px de largura até o maior tamanho que cabe na área visível, preservando a proporção. Arrastar o canto inferior esquerdo para cima diminui o card e mantém o canto oposto como referência. A prévia também pode ser movida e tem opacidade ajustável de 20% a 100%. Os toques atravessam a imagem e alcançam os controles atrás dela; as barras e alças interceptam apenas os seus próprios gestos. Fechar e reabrir preserva o tamanho durante a edição. A área disponível é recalculada com teclado e mudanças de formato. No computador, a prévia continua ao lado dos controles. O tamanho e a transparência da prévia não alteram a resolução nem a opacidade da imagem exportada.
 
 
 
-Validação desta revisão: Chromium em 390 × 740 e área reduzida a 390 × 370, navegação pelas sete telas, campo de IA visível, ampliação da prévia e ausência de exceções JavaScript. Teclado de aparelho real e comportamento do Safari ainda precisam de conferência. A integração com a main inclui as correções dos testes anteriores.
+Validação desta revisão: Chromium em 390 × 740 e área reduzida a 390 × 370, navegação condicional para imagem e cor sólida, campo de IA visível, ampliação da prévia e ausência de exceções JavaScript. Teclado de aparelho real e comportamento do Safari ainda precisam de conferência. A integração com a main inclui as correções dos testes anteriores.
 
 ## Validação desta entrega
 
@@ -102,4 +102,4 @@ Não foi usada uma chave real, não houve chamada real ao Gemini e não houve te
 
 ### Como começar o cartão
 
-Na escolha de modelo, o usuário pode começar com um fundo pronto, escolher uma cor sólida ou usar uma base branca sem modelo. Os 12 cartões ilustrados originais ficam em uma seção própria, com prévias no formato escolhido. A tela explica que o modelo é o fundo do cartão e pode ser combinado com fotos depois. As bases usam os campos existentes de cada post e são preservadas nos projetos. Não há setas decorativas nos botões; os detalhes usam sinais de mais e menos em vez dos marcadores nativos que podem virar emoji no iPhone.
+Na primeira tela, o usuário escolhe entre imagem ou cor sólida; o seletor de cor também oferece uma base branca sem modelo. Quem escolhe imagem encontra modelos e upload na etapa seguinte. Os 12 cartões ilustrados originais ficam em uma seção própria, com prévias no formato escolhido. A tela explica que o modelo é o fundo do cartão e pode ser combinado com fotos depois. As bases usam os campos existentes de cada post e são preservadas nos projetos. A barra da prévia usa apenas ícones acessíveis para mover, recolher e ampliar, com moldura fina e sombra para destacar a imagem sobre os controles. Não há setas decorativas nos botões; os detalhes usam sinais de mais e menos em vez dos marcadores nativos que podem virar emoji no iPhone.
