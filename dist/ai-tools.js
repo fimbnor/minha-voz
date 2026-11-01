@@ -21,14 +21,15 @@ async function checkAI(){
  if(!aiReady)button.title=$('#prompt-status').textContent;
 }
 window.addEventListener('focus',()=>{if(!aiReady&&!aiRunning)checkAI();});
+function aiNotice(message,field){const status=$('#prompt-status');status.textContent=message;status.scrollIntoView({block:'nearest'});if(field)$(field).focus();}
 function aiSource(){const c=photoCanvas(originalPhoto,1600),url=c.toDataURL('image/jpeg',.9);return {mimeType:'image/jpeg',data:url.split(',')[1]};}
 $('#ai-generate').onclick=async()=>{
  if(!aiReady||aiRunning)return;
- const mode=$('#ai-mode').value,prompt=state.aiPrompt.trim();
- if(!prompt){toast('Descreva os detalhes que deseja na imagem.');return;}
- if(!$('#ai-consent').checked){toast('Autorize o envio ao Google para continuar.');return;}
- if(mode!=='background'&&!originalPhoto){toast('Envie uma foto no passo Sua foto.');return;}
- if(mode!=='background'&&state.campaign.id==='bebe'){toast('Em Meu Bebê, escolha Criar cenário para preservar a foto original.');return;}
+ const mode=$('#ai-mode').value,prompt=$('#ai-prompt').value.trim();
+ if(!prompt){aiNotice("Descreva os detalhes que deseja na imagem.","#ai-prompt");return;}
+ if(!$('#ai-consent').checked){aiNotice("Autorize o envio ao Google para continuar.","#ai-consent");return;}
+ if(mode!=='background'&&!originalPhoto){aiNotice("Envie uma foto no passo Sua foto.",null);return;}
+ if(mode!=='background'&&state.campaign.id==='bebe'){aiNotice("Em Meu Bebê, escolha Criar cenário para preservar a foto original.","#ai-mode");return;}
  aiRunning=true;$('#ai-generate').setAttribute('aria-busy','true');aiCandidate=null;$('#ai-result').hidden=true;$('#ai-generate').disabled=true;$('#ai-generate').textContent='Gerando… aguarde';$('#prompt-status').textContent='Pedido enviado. Você pode aguardar até dois minutos. Não há repetição automática.';
  const revision=photoRevision,campaign=state.campaign.id;
  try{

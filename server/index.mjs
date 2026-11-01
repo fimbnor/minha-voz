@@ -42,7 +42,27 @@ export function extractImage(data){
 async function jsonBody(req){let bytes=0,chunks=[];for await(const c of req){bytes+=c.length;if(bytes>MAX_BODY)throw new ApiError(413,'Arquivo muito grande.');chunks.push(c);}try{return JSON.parse(Buffer.concat(chunks));}catch{throw new ApiError(400,'Requisição inválida.');}}
 async function provider(fetchImpl,payload,key,timeoutMs){
  let r;try{r=await fetchImpl(ENDPOINT,{method:'POST',headers:{'x-goog-api-key':key,'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(timeoutMs)});}catch(e){throw new ApiError(e.name==='TimeoutError'||e.name==='AbortError'?504:502,'O Google não respondeu. Nenhuma nova tentativa foi disparada automaticamente.');}
- if(!r.ok){const msg=r.status===429?'Cota do Gemini esgotada.':r.status===401||r.status===403?'A chave não tem acesso. Verifique a configuração no servidor.':r.status===404?'Modelo de imagens indisponível para este projeto.':'O Gemini recusou ou não conseguiu processar o pedido.';throw new ApiError(r.status===429?429:502,msg);}
+ if(!r.ok){
+  let error;try{const raw=await r.text();if(raw.length<=65536)error=JSON.parse(raw).error;}catch{}
+  const knownStatuses=['INVALID_ARGUMENT','FAILED_PRECONDITION','UNAUTHENTICATED','PERMISSION_DENIED','NOT_FOUND','RESOURCE_EXHAUSTED','INTERNAL','UNAVAILABLE','DEADLINE_EXCEEDED'];
+  const status=knownStatuses.includes(error?.status)?error.status:'UNKNOWN';
+  const reasons={
+   API_KEY_INVALID:'A chave da API é inválida. Confira GEMINI_API_KEY no Render.',
+   API_KEY_EXPIRED:'A chave da API expirou. Atualize GEMINI_API_KEY no Render.',
+   API_KEY_IP_ADDRESS_BLOCKED:'O Google bloqueou o IP de saída. Confira todas as faixas Outbound do serviço atual do Render nas restrições da chave.',
+   API_KEY_SERVICE_BLOCKED:'A restrição da chave não permite esta API. Confira o acesso à Generative Language API.',
+   API_KEY_HTTP_REFERRER_BLOCKED:'A chave está restrita por site. Para chamadas do servidor, confira a restrição por IP de saída.',
+   SERVICE_DISABLED:'A Generative Language API está desativada no projeto Google.',
+   BILLING_DISABLED:'O Google informou que o faturamento está desativado no projeto.',
+   CONSUMER_INVALID:'O Google não reconheceu o projeto associado à chave.'
+  };
+  const details=Array.isArray(error?.details)?error.details:[];
+  const reason=details.map(d=>d?.reason).find(v=>Object.hasOwn(reasons,v))||'';
+  const hints={400:'O Google rejeitou os parâmetros ou a configuração do projeto.',401:'O Google não autenticou a chave.',402:'Confira o faturamento do projeto no Google.',403:'O Google negou o acesso. Confira as restrições da chave e as permissões do projeto.',404:'O modelo configurado não está disponível para este projeto.',429:'Cota ou limite de chamadas do Gemini atingido.',500:'Falha interna no Google. Tente mais tarde.',503:'O serviço do Google está temporariamente indisponível.',504:'O Google excedeu o tempo de processamento.'};
+  console.error('Gemini request failed',{httpStatus:r.status,status,reason:reason||'UNKNOWN'});
+  const msg='Gemini retornou HTTP '+r.status+(status==='UNKNOWN'?'':' ('+status+')')+(reason?' ['+reason+']':'')+'. '+(reasons[reason]||hints[r.status]||'O Google recusou o pedido. Confira o serviço e o modelo configurados.');
+  throw new ApiError(r.status===429?429:502,msg);
+ }
  const raw=await r.text();if(raw.length>14*1024*1024)throw new ApiError(502,'Imagem de resposta muito grande.');let data;try{data=JSON.parse(raw);}catch{throw new ApiError(502,'Resposta inválida do Gemini.');}return extractImage(data);
 }
 export function createApp({env=process.env,fetchImpl=fetch,now=Date.now,timeoutMs=120000}={}){

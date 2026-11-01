@@ -25,3 +25,20 @@ test('malformed JSON and oversized bodies are rejected',async t=>{const a=await 
 
 test('config identifies disabled generation without revealing credentials or calling provider',async t=>{for(const flag of ['', 'false', 'TRUE']){let calls=0;const a=await setup(t,{env:{...env,AI_ENABLED:flag},fetchImpl:()=>{calls++;throw Error('must not call');}});const r=await fetch(a.url+'/api/config',{headers:a.headers});const text=await r.text();assert(!text.includes(key));assert(!text.includes(secret));assert.deepEqual(JSON.parse(text).missingConfig,['AI_ENABLED']);assert.equal((await a.post()).status,503);assert.equal(calls,0);}});
 test('config reports both missing settings and clears them when enabled',async t=>{const a=await setup(t,{env:{...env,GEMINI_API_KEY:'',AI_ENABLED:''}});const data=await (await fetch(a.url+'/api/config',{headers:a.headers})).json();assert.deepEqual(data.missingConfig,['GEMINI_API_KEY','AI_ENABLED']);assert.equal(data.available,false);const b=await setup(t);const ready=await (await fetch(b.url+'/api/config',{headers:b.headers})).json();assert.equal(ready.available,true);assert.deepEqual(ready.missingConfig,[]);});
+
+test('reports provider validation status without leaking upstream messages or request data',async t=>{
+ t.mock.method(console,'error',()=>{});
+ let calls=0;
+ const a=await setup(t,{fetchImpl:async()=>{calls++;return new Response(JSON.stringify({error:{status:'INVALID_ARGUMENT',message:key+' '+secret+' '+body.prompt,details:[{reason:key,metadata:{key}}]}}),{status:400});}});
+ const r=await a.post();const text=await r.text();assert.equal(r.status,502);assert.match(text,/HTTP 400/);assert.match(text,/INVALID_ARGUMENT/);for(const sensitive of [key,secret,body.prompt,PNG])assert(!text.includes(sensitive));assert.equal(calls,1);
+});
+test('explains IP restriction errors and preserves secret-free diagnostic logs',async t=>{
+ const logs=[];t.mock.method(console,'error',(...args)=>logs.push(args));
+ const a=await setup(t,{fetchImpl:async()=>new Response(JSON.stringify({error:{status:'PERMISSION_DENIED',message:key,details:[{reason:'API_KEY_IP_ADDRESS_BLOCKED',metadata:{ip:'private',key}}]}}),{status:403})});
+ const r=await a.post();const text=await r.text();assert.match(text,/API_KEY_IP_ADDRESS_BLOCKED/);assert.match(text,/Outbound/);const logged=JSON.stringify(logs);assert(!logged.includes(key));assert(!logged.includes('private'));assert(!text.includes(key));
+});
+test('handles non-JSON provider failures without retrying or exposing content',async t=>{
+ t.mock.method(console,'error',()=>{});let calls=0;
+ const a=await setup(t,{fetchImpl:async()=>{calls++;return new Response('<html>'+key+'</html>',{status:503});}});
+ const r=await a.post();const text=await r.text();assert.equal(r.status,502);assert.match(text,/HTTP 503/);assert(!text.includes(key));assert.equal(calls,1);
+});
