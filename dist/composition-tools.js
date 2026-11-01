@@ -7,7 +7,7 @@ function templateStyle(id){return PHOTO_TEMPLATES.has(id)?'photo':BANNER_TEMPLAT
 function catalogCategories(list){return [...new Set(list.map(c=>c.category))].map(name=>({name,icon:CATEGORY_ICONS[name]||'grid'}));}
 function visibleCampaigns(list,{style='all',category='all',query='',onlySaved=false,saved=new Set()}={}){
  const term=query.toLocaleLowerCase('pt-BR');
- return list.filter(c=>(style==='all'||c.imageStyle===style)&&(category==='all'||c.category===category)&&(!onlySaved||saved.has(c.id))&&[c.name,c.category,c.text,IMAGE_STYLES[c.imageStyle]?.label].join(' ').toLocaleLowerCase('pt-BR').includes(term));
+ return list.filter(c=>(style==='all'||c.imageStyle===style)&&(category==='all'||(category instanceof Set?(category.size===0||category.has(c.category)):Array.isArray(category)?(!category.length||category.includes(c.category)):c.category===category))&&(!onlySaved||saved.has(c.id))&&[c.name,c.category,c.text,IMAGE_STYLES[c.imageStyle]?.label].join(' ').toLocaleLowerCase('pt-BR').includes(term));
 }
 let nextPageId=0;
 const MAX_CAROUSEL_PAGES=10;

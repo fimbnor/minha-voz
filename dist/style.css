@@ -224,3 +224,5 @@ button,a,[role="button"]{touch-action:manipulation}
 @media (max-width: 460px) {
   .filters .filter { flex-basis: calc(50% - 3px); }
 }
+
+.projects-open{margin:0 0 14px}.editor-header-actions{display:flex;align-items:center;gap:10px}.editor-header-actions .secondary-button{padding:10px 12px}.projects-panel{padding:24px;width:min(520px,90vw)}.projects-panel header{display:flex;align-items:center;justify-content:space-between}.projects-panel h2{margin:0;font-size:23px}.projects-panel p{line-height:1.5;color:#65765e}.project-row{display:flex;align-items:center;gap:8px;padding:12px 0;border-top:1px solid #dce2d3}.project-row div{flex:1;min-width:0}.project-row strong{display:block;overflow-wrap:anywhere}.project-row small{color:#687863}.active-category-chip{cursor:pointer} @media(max-width:580px){.editor-header-actions{gap:6px}.editor-header-actions .secondary-button{font-size:11px;padding:9px}.project-row{flex-wrap:wrap}}
