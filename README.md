@@ -80,7 +80,8 @@ Recorte experimental de pessoas com MediaPipe Tasks Vision 0.10.21 e Selfie Segm
 
 O fluxo tem sete telas: Formato, Modelo, Foto, Texto, Visual, IA e Baixar. A navegação permite voltar aos ajustes sem perder o trabalho. Tratamento de foto fica em um painel recolhido, aberto quando necessário.
 
-No celular, os controles ocupam a área de trabalho. **Ver card** abre a prévia em tela cheia e **Voltar aos ajustes** retorna à mesma tela e posição. No computador, a prévia continua ao lado dos controles. A altura do editor acompanha o `VisualViewport` ao abrir o teclado; não há prévia fixa nem barra de avanço sobre o campo de texto. A resolução exportada permanece a do formato selecionado.
+No celular, um botão flutuante com miniatura ao vivo dá acesso à prévia sem reservar espaço no layout. A prévia aberta pode ser movida e tem opacidade ajustável de 20% a 100%. A imagem deixa os toques passarem para os controles atrás dela; apenas sua barra de movimento e seus controles interceptam toques. É possível recolher a prévia ou abrir a versão em tela cheia. O widget acompanha a área visível do navegador, inclusive com teclado. No computador, a prévia continua ao lado dos controles. A exportação mantém a resolução e a opacidade originais: a transparência do widget serve apenas para editar.
+
 
 Validação desta revisão: Chromium em 390 × 740 e área reduzida a 390 × 370, navegação pelas sete telas, campo de IA visível, ampliação da prévia e ausência de exceções JavaScript. Teclado de aparelho real e comportamento do Safari ainda precisam de conferência. A integração com a main inclui as correções dos testes anteriores.
 
@@ -97,3 +98,7 @@ Não foi usada uma chave real, não houve chamada real ao Gemini e não houve te
 - https://ai.google.dev/gemini-api/docs/api-key
 - https://render.com/docs/web-services
 - https://render.com/docs/configure-environment-variables
+
+### Como começar o cartão
+
+Na escolha de modelo, o usuário pode começar com um fundo pronto, escolher uma cor sólida ou usar uma base branca sem modelo. Os 12 cartões ilustrados originais ficam em uma seção própria, com prévias no formato escolhido. A tela explica que o modelo é o fundo do cartão e pode ser combinado com fotos depois. As bases usam os campos existentes de cada post e são preservadas nos projetos. Não há setas decorativas nos botões; os detalhes usam sinais de mais e menos em vez dos marcadores nativos que podem virar emoji no iPhone.

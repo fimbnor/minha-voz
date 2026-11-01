@@ -59,7 +59,7 @@ function drawCardBackground(ctx,w,h,c,opts={}){
 }
 function colorLuminance(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
 function drawSignature(ctx,w,h,opts,{x=w*.0764,y=h-w*.0486,center=false,maxWidth=w*.8,size=w*.018}={}){
- const text=opts.signature||'Crie a sua → Minha Voz',color=opts.signatureColor||opts.textColor||'#213f33';
+ const text=opts.signature||'Crie a sua · Minha Voz',color=opts.signatureColor||opts.textColor||'#213f33';
  ctx.save();ctx.font=size+'px Arial';ctx.textAlign=center?'center':'left';ctx.textBaseline='alphabetic';
  const textWidth=Math.min(ctx.measureText(text).width,maxWidth),pad=size*.55;
  if(opts.signaturePlate!==false){ctx.fillStyle=colorLuminance(color)>.5?'#102c22e8':'#fffefaed';rounded(ctx,x-(center?textWidth/2:0)-pad,y-size-pad*.55,textWidth+pad*2,size+pad*1.4,pad*.5);ctx.fill();}

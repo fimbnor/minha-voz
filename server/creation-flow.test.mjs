@@ -63,3 +63,47 @@ test('initial carousel model choice applies to all starter posts, later choices 
  e.context.navigateCreation(2);e.context.navigateCreation(1);e.context.selectCampaign(e.campaigns[2]);
  assert.equal(e.state.pages[0].campaign.id,e.campaigns[2].id);assert.equal(e.state.pages[1].campaign.id,e.campaigns[1].id);
 });
+
+test('starting without a model replaces illustrated art with white and keeps user layers',async()=>{
+ const e=await frontend();e.open();e.context.navigateCreation(1);
+ const photo={width:500,height:500};e.context.setPagePhoto(e.context.activePage(),photo);
+ e.input('#headline','Minha mensagem');e.input('#signature','Minha assinatura');
+ e.$('#base-blank').onclick();
+ assert.equal(e.state.backgroundMode,'color');assert.equal(e.state.backgroundColor,'#ffffff');
+ assert.equal(e.state.background,null);assert.equal(e.state.photo,photo);
+ assert.equal(e.state.text,'Minha mensagem');assert.equal(e.state.signature,'Minha assinatura');
+ assert.equal(e.$('#base-blank').attributes.get('aria-pressed'),'true');
+ assert.equal(e.$('#model-library').hidden,true);
+ assert(e.drawCalls().some(c=>c.op==='fillRect'&&c.color==='#ffffff'));
+});
+
+test('blank starter drops suggested copy; solid starter chooses readable text and survives project restore',async()=>{
+ const e=await frontend();e.open();e.context.navigateCreation(1);
+ e.$('#base-blank').onclick();assert.equal(e.state.text,'');
+ e.$('#base-color-input').oninput({target:{value:'#183f35'}});
+ assert.equal(e.state.textColor,'#fffefa');assert.equal(e.state.backgroundColor,'#183f35');
+ assert.equal(e.$('#base-color').attributes.get('aria-pressed'),'true');
+ const saved=e.context.projectPage(e.context.activePage());
+ await e.context.restoreProject({version:1,id:'solid',pages:[saved],format:'story',step:1,edits:[]});
+ assert.equal(e.state.backgroundMode,'color');assert.equal(e.state.backgroundColor,'#183f35');
+ assert.equal(e.$('#model-library').hidden,true);
+});
+
+test('the original illustrated cards are selectable and the same template can replace a solid base',async()=>{
+ const e=await frontend();e.open();e.context.navigateCreation(1);
+ const illustrated=e.campaigns.filter(c=>c.nativeScene);
+ assert.equal(e.$('#illustrated-template-list').children.length,illustrated.length);
+ e.$('#illustrated-template-list').children[0].onclick();
+ assert.equal(e.state.campaign.id,illustrated[0].id);
+ e.$('#base-blank').onclick();e.$('#base-model').onclick();
+ assert.equal(e.state.backgroundMode,'image');assert.equal(e.state.campaign.id,illustrated[0].id);
+ assert.equal(e.$('#model-library').hidden,false);
+});
+
+test('initial carousel bases apply to starter pages and later changes stay on the current page',async()=>{
+ const e=await frontend();e.open();e.change('#format','carousel');e.context.navigateCreation(1);
+ e.$('#base-blank').onclick();assert(e.state.pages.every(p=>p.backgroundColor==='#ffffff'&&p.backgroundMode==='color'&&p.text===''));
+ e.context.navigateCreation(2);e.context.navigateCreation(1);
+ e.context.chooseBaseColor('#e7c746');
+ assert.equal(e.state.pages[0].backgroundColor,'#e7c746');assert.equal(e.state.pages[1].backgroundColor,'#ffffff');
+});
