@@ -22,9 +22,7 @@ function paintFloatingPreviewGeometry(){
  const small=g.width<160||g.height<170;
  floatingPreview.classList.toggle('small-floating-preview',small);
  if(!small)floatingPreviewExpandedWidth=g.width;
- const limits=fitFloatingPreview(g.width),range=limits.max-limits.min;
- $('#floating-preview-size').value=range>0?Math.round((g.width-limits.min)/range*100):100;
- $('#floating-preview-size').setAttribute('aria-valuetext',Math.round(g.width)+' pixels de largura');
+
 }
 function clampFloatingPreview(){
  if(!floatingPreviewOpen||!floatingPreviewGeometry)return;
@@ -60,7 +58,6 @@ $('#floating-preview-close').onclick=()=>{
  Object.assign(floatingPreviewGeometry,{left:right-size.width,width:size.width,height:size.height});clampFloatingPreview();
  $('#floating-preview-move').focus({preventScroll:true});
 };
-$('#floating-preview-restore').onclick=restoreFloatingPreview;
 $('#floating-preview-full').onclick=()=>{
  const size=fitFloatingPreview(Infinity),bounds=floatingPreviewBounds();
  floatingPreviewGeometry={left:(bounds.width-size.width)/2,top:(bounds.height-size.height)/2,width:size.width,height:size.height};
@@ -71,21 +68,6 @@ $('#floating-preview-opacity').oninput=e=>{
  $('#floating-preview-opacity-value').textContent=e.target.value+'%';
  $('#floating-preview-opacity').setAttribute('aria-valuetext',e.target.value+'%');
 };
-$('#floating-preview-size').oninput=e=>{
- if(!floatingPreviewGeometry)return;
- const limits=fitFloatingPreview(0),size=fitFloatingPreview(limits.min+(limits.max-limits.min)*Number(e.target.value)/100);
- const right=floatingPreviewGeometry.left+floatingPreviewGeometry.width;
- floatingPreviewGeometry.width=size.width;floatingPreviewGeometry.height=size.height;
- floatingPreviewGeometry.left=right-size.width;clampFloatingPreview();
-};
-// Freeze the resizing track during a touch so it does not move under the finger.
-const previewSizeRange=$('#floating-preview-size');
-previewSizeRange.addEventListener('pointerdown',()=>{
- const rect=previewSizeRange.getBoundingClientRect();
- Object.assign(previewSizeRange.style,{position:'fixed',left:rect.left+'px',top:rect.top+'px',width:rect.width+'px',height:rect.height+'px',zIndex:'9'});
-});
-function releasePreviewSizeTrack(){for(const property of ['position','left','top','width','height','z-index'])previewSizeRange.style.removeProperty(property);}
-for(const event of ['pointerup','pointercancel','lostpointercapture','blur'])previewSizeRange.addEventListener(event,releasePreviewSizeTrack);
 function setFloatingPreviewPosition(left,top){
  if(!floatingPreviewGeometry){const size=fitFloatingPreview(220);floatingPreviewGeometry={...size,left,top};}
  floatingPreviewGeometry.left=left;floatingPreviewGeometry.top=top;clampFloatingPreview();
@@ -122,9 +104,9 @@ function wireFloatingGesture(handle,corner){
  });
 }
 wireFloatingGesture($('#floating-preview-move'));
-for(const corner of ['sw','se','nw','ne'])wireFloatingGesture($('[data-preview-corner="'+corner+'"]'),corner);
+wireFloatingGesture($('[data-preview-corner="sw"]'),'sw');
 $('#editor').addEventListener('close',()=>{
- releasePreviewSizeTrack();floatingPreviewDrag=null;floatingPreviewGeometry=null;floatingPreviewOpen=false;floatingPreviewExpandedWidth=220;
+ floatingPreviewDrag=null;floatingPreviewGeometry=null;floatingPreviewOpen=false;floatingPreviewExpandedWidth=220;
  $('#floating-preview-panel').hidden=true;
 });
 syncFloatingPreview();
