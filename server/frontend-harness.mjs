@@ -11,8 +11,8 @@ export async function frontend({reducedMotion=true}={}){
    style:{setProperty:(key,value)=>styles.set(key,value),removeProperty:key=>styles.delete(key)},
    classList:{toggle(key,on){on?classes.add(key):classes.delete(key);},add:key=>classes.add(key),remove:key=>classes.delete(key)},
    getContext:()=>ctx,toBlob:fn=>fn({type:'image/png'}),toDataURL:()=>('data:image/png;base64,'+Buffer.from('canvas').toString('base64')),
-   setAttribute:(key,value)=>attributes.set(key,value),removeAttribute:key=>attributes.delete(key),addEventListener:(event,fn)=>events.set(event,fn),
-   querySelector:()=>element(),append(child){this.children.push(child);},showModal(){this.open=true;},close(){this.open=false;events.get('close')?.();},scrollIntoView(){},contains(){return false;},focus(){},animate(){return {cancel(){}};}};
+   getAttribute:key=>attributes.get(key),setAttribute:(key,value)=>attributes.set(key,value),removeAttribute:key=>attributes.delete(key),addEventListener:(event,fn)=>events.set(event,fn),
+   querySelector:()=>element(),append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},remove(){},showModal(){this.open=true;},close(){this.open=false;events.get('close')?.();},scrollIntoView(){},contains(){return false;},focus(){},animate(){return {cancel(){}};}};
  }
  const $=id=>{if(!nodes.has(id))nodes.set(id,element());return nodes.get(id);};
  const list=(attribute)=>[...html.matchAll(new RegExp(attribute+'="([^\"]+)"','g'))].map(([,value])=>Object.assign(element(),{dataset:{[attribute.slice(5)]:value}}));

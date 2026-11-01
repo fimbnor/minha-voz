@@ -12,7 +12,7 @@ function editor(){
   return {open:false,width:0,height:0,textContent:'',properties,classes,listeners,
    style:{setProperty:(key,value)=>properties.set(key,value),removeProperty:key=>properties.delete(key)},
    classList:{toggle(key,on){on?classes.add(key):classes.delete(key);},remove:key=>classes.delete(key)},
-   addEventListener:(key,fn)=>listeners.set(key,fn),contains:target=>target?.control===true,
+   setAttribute(){},addEventListener:(key,fn)=>listeners.set(key,fn),contains:target=>target?.control===true,
    getContext:()=>({drawImage:(...args)=>copies.push(args)}),
    showModal(){this.open=true;},close(){this.open=false;this.listeners.get('close')?.();},
    scrollIntoView:()=>scrolled.push(id)};
