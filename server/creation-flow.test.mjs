@@ -28,13 +28,13 @@ test('back and next retain photo, text, signature, background and chosen templat
  e.context.selectCampaign(e.campaigns[1]);assert.equal(e.state.photo,photo);assert.equal(e.state.text,'Minha mensagem');
 });
 
-test('photo step exposes the AI editor without sending or accepting an edit',async()=>{
+test('photo advances to text before the AI step without changing the card',async()=>{
  const e=await frontend();e.open();e.context.navigateCreation(2);
  e.input('#headline','Texto preservado');
- e.$('#photo-to-ai').onclick();
- assert.equal(e.state.step,6);assert.equal(e.$('#ai-edit-options').open,true);
+ e.$('#flow-next').onclick();assert.equal(e.state.step,3);
  assert.equal(e.state.text,'Texto preservado');assert.equal(e.state.aiCard,null);
  assert.equal(e.$('#ai-consent').checked,false);
+ e.$('#flow-next').onclick();assert.equal(e.state.step,6);
 });
 
 test('carousel and circular profile retain independent pages across format and step changes',async()=>{

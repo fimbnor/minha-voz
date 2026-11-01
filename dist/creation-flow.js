@@ -28,7 +28,6 @@ $('#flow-back').onclick=()=>{const order=creationOrder();navigateCreation(order[
 $('#flow-next').onclick=()=>{const order=creationOrder();navigateCreation(order[Math.min(order.length-1,order.indexOf(state.step)+1)]);};
 $('#start-creation').onclick=()=>openEditor(campaigns.find(c=>c.id==='amor')||campaigns[0]);
 $('#start-solid').onclick=()=>openEditor(campaigns.find(c=>c.id==='amor')||campaigns[0],{backgroundMode:'color'});
-$('#photo-to-ai').onclick=()=>{navigateCreation(6);$('#ai-edit-options').open=true;$('#ai-prompt').focus({preventScroll:true});};
 $('#skip-photo').onclick=()=>navigateCreation(3);
 syncFlowUI();
 
