@@ -30,7 +30,7 @@ export function providerBody(body,model){
  const policies={background:'Crie somente um cenário fotográfico, sem pessoas, para compor depois com uma foto original. Reserve espaço para a pessoa e a mensagem.',professional:'Aprimore a foto com iluminação profissional natural e cores equilibradas. Preserve feições, idade aparente, tom de pele, proporções e textura natural. Não redesenhe a identidade.',transform:'Edite a foto de acordo com os detalhes, preservando a identidade e as proporções da pessoa e os detalhes do objeto principal.'};
  const input=[{type:'text',text:policies[body.mode]+' Não inclua texto, logotipos ou marcas: serão aplicados pelo editor. Detalhes do usuário: '+body.prompt}];
  if(body.mode!=='background')input.push({type:'image',mime_type:body.image.mimeType,data:body.image.data});
- return {model,input,store:false,response_format:{type:'image',mime_type:'image/png',aspect_ratio:body.aspectRatio,image_size:'1K'}};
+ return {model,input,store:false,response_format:{type:'image',mime_type:'image/jpeg',aspect_ratio:body.aspectRatio,image_size:'1K'}};
 }
 export function extractImage(data){
  if(data.status&&data.status!=='completed')throw new ApiError(422,'A geração não foi concluída. Confira as instruções antes de tentar novamente.');

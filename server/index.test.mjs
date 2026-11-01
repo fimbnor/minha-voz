@@ -50,3 +50,20 @@ test('shows interactions error code and useful detail while redacting credential
  assert.equal(r.status,502);assert.match(text,/invalid_request/);assert.match(text,/Unsupported field response_format/);
  for(const value of [key,secret,body.prompt,PNG]){assert(!text.includes(value));assert(!JSON.stringify(logs).includes(value));}
 });
+
+test('all generation modes request supported JPEG output and return the provider JPEG',async t=>{
+ const jpeg="/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAACAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwCnRRRXEeQf/9k=";
+ for(const mode of ['background','professional','transform']){
+  let calls=0;
+  const a=await setup(t,{fetchImpl:async(_,options)=>{
+   calls++;const sent=JSON.parse(options.body);
+   assert.equal(sent.response_format.mime_type,'image/jpeg');
+   assert.equal(sent.response_format.aspect_ratio,'4:5');
+   assert.equal(sent.store,false);
+   if(mode!=='background')assert.equal(sent.input[1].mime_type,'image/png');
+   return new Response(JSON.stringify({status:'completed',steps:[{type:'model_output',content:[{type:'image',mime_type:'image/jpeg',data:jpeg}]}]}));
+  }});
+  const r=await a.post({...body,mode});assert.equal(r.status,200);
+  const result=await r.json();assert.equal(result.image.mimeType,'image/jpeg');assert.equal(result.image.data,jpeg);assert.equal(calls,1);
+ }
+});
