@@ -42,17 +42,11 @@ function syncFloatingPreview(){
  }
  clampFloatingPreview();
 }
-function toggleFloatingPreview(open){
- floatingPreviewOpen=open;
- $('#floating-preview-toggle').setAttribute('aria-expanded',String(open));
- $('#floating-preview-panel').hidden=!open;
- if(open&&!floatingPreviewGeometry){
-  const shell=$('.editor-shell').getBoundingClientRect(),button=$('#floating-preview-toggle').getBoundingClientRect(),size=fitFloatingPreview(220);
-  floatingPreviewGeometry={left:button.right-shell.left-size.width,top:button.bottom-shell.top+8,width:size.width,height:size.height};
- }
- syncFloatingPreview();
- if(open)$('#floating-preview-close').focus({preventScroll:true});
- else $('#floating-preview-toggle').focus({preventScroll:true});
+function ensureFloatingPreview(){
+ if(floatingPreviewGeometry)return;
+ const bounds=floatingPreviewBounds(),size=fitFloatingPreview(0);
+ floatingPreviewGeometry={left:Math.max(0,bounds.width-size.width-12),top:Math.max(0,bounds.height-size.height-90),width:size.width,height:size.height};
+ floatingPreviewOpen=true;$('#floating-preview-panel').hidden=false;clampFloatingPreview();
 }
 function restoreFloatingPreview(){
  if(!floatingPreviewGeometry)return;
@@ -60,10 +54,6 @@ function restoreFloatingPreview(){
  Object.assign(floatingPreviewGeometry,{left:right-size.width,width:size.width,height:size.height});clampFloatingPreview();
  $('#floating-preview-close').focus({preventScroll:true});
 }
-$('#floating-preview-toggle').onclick=()=>{
- if(floatingPreviewOpen&&floatingPreviewGeometry?.width<160)restoreFloatingPreview();
- else toggleFloatingPreview(!floatingPreviewOpen);
-};
 $('#floating-preview-close').onclick=()=>{
  if(!floatingPreviewGeometry)return;
  const right=floatingPreviewGeometry.left+floatingPreviewGeometry.width,size=fitFloatingPreview(0);
@@ -135,6 +125,6 @@ wireFloatingGesture($('#floating-preview-move'));
 for(const corner of ['sw','se','nw','ne'])wireFloatingGesture($('[data-preview-corner="'+corner+'"]'),corner);
 $('#editor').addEventListener('close',()=>{
  releasePreviewSizeTrack();floatingPreviewDrag=null;floatingPreviewGeometry=null;floatingPreviewOpen=false;floatingPreviewExpandedWidth=220;
- $('#floating-preview-toggle').setAttribute('aria-expanded','false');$('#floating-preview-panel').hidden=true;
+ $('#floating-preview-panel').hidden=true;
 });
 syncFloatingPreview();

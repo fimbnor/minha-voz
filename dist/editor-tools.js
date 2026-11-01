@@ -15,6 +15,7 @@ function syncEditorViewport(){
  editor.style.setProperty('--editor-height',height+'px');
  editor.style.setProperty('--editor-top',Math.round(viewport?.offsetTop||0)+'px');
  editor.classList.toggle('compact-editor',height<500);
+ if(typeof ensureFloatingPreview==='function')ensureFloatingPreview();
  if(typeof clampFloatingPreview==='function')clampFloatingPreview();
 }
 let editorViewportFrame;

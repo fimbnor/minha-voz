@@ -5,7 +5,6 @@ import {frontend} from './frontend-harness.mjs';
 async function editor(){
  const e=await frontend();
  e.$('.editor-shell').getBoundingClientRect=()=>({left:0,top:0,width:390,height:740});
- e.$('#floating-preview-toggle').getBoundingClientRect=()=>({left:280,right:370,top:120,bottom:160,width:90,height:40});
  const widget=e.$('#floating-preview');
  widget.getBoundingClientRect=()=>({left:parseFloat(widget.style.left)||138,top:parseFloat(widget.style.top)||200,width:240,height:350});
  return e;
@@ -21,25 +20,25 @@ test('floating copies keep the current export aspect ratio and update with manua
 });
 test('floating controls open, adjust image opacity only, and collapse without changing the card',async()=>{
  const e=await editor();e.open();const page=e.context.activePage();
- e.$('#floating-preview-toggle').onclick();assert.equal(e.$('#floating-preview-panel').hidden,false);
+ e.context.restoreFloatingPreview();assert.equal(e.$('#floating-preview-panel').hidden,false);
  e.$('#floating-preview-opacity').oninput({target:{value:'35'}});
  assert.equal(e.$('#floating-preview-canvas').style.opacity,.35);
  assert.equal(e.$('#floating-preview-opacity-value').textContent,'35%');
  assert.equal(e.$('#floating-preview-panel').style.opacity,undefined);
  e.$('#floating-preview-close').onclick();assert.equal(e.$('#floating-preview-panel').hidden,false);
  assert(e.$('#floating-preview').classes.has('small-floating-preview'));
- assert.equal(e.$('#floating-preview-toggle').hidden,false);assert.equal(e.context.activePage(),page);
+ assert.equal(e.context.activePage(),page);
 });
 test('moving the preview keeps its controls within the editor and resets on close',async()=>{
- const e=await editor();e.open();e.$('#floating-preview-toggle').onclick();e.context.setFloatingPreviewPosition(999,-50);
+ const e=await editor();e.open();e.context.restoreFloatingPreview();e.context.setFloatingPreviewPosition(999,-50);
  assert.equal(e.$('#floating-preview').style.left,'170px');assert.equal(e.$('#floating-preview').style.top,'0px');
- e.$('#floating-preview-toggle').onclick();e.$('#editor').close();
+ e.context.restoreFloatingPreview();e.$('#editor').close();
  assert.equal(e.$('#floating-preview-panel').hidden,true);
- assert.equal(e.$('#floating-preview-toggle').attributes.get('aria-expanded'),'false');
+ assert.equal(e.$('#floating-preview-panel').hidden,true);
 });
 
 test('lower-left resize shrinks upward to button size and grows to screen bounds',async()=>{
- const e=await editor();e.open();e.$('#floating-preview-toggle').onclick();
+ const e=await editor();e.open();e.context.restoreFloatingPreview();
  const start=()=>JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
  const before=start();e.context.resizeFloatingPreview('sw',0,-100,before);
  assert(start().width<before.width);assert.equal(start().top,before.top);
@@ -50,18 +49,18 @@ test('lower-left resize shrinks upward to button size and grows to screen bounds
  assert.equal(e.$('#preview-canvas').width,1080);assert.equal(e.$('#preview-canvas').height,1350);
 });
 test('resize fits story and keyboard viewports and keeps the selected size after reopening',async()=>{
- const e=await editor();e.open();e.change('#format','story');e.$('#floating-preview-toggle').onclick();
+ const e=await editor();e.open();e.change('#format','story');e.context.restoreFloatingPreview();
  e.$('#floating-preview-full').onclick();
  let g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
  assert(g.width<=390&&g.height<=740);
  e.$('.editor-shell').getBoundingClientRect=()=>({left:0,top:0,width:390,height:370});e.context.clampFloatingPreview();
  g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));assert(g.height<=370);
- e.$('#floating-preview-close').onclick();e.$('#floating-preview-toggle').onclick();
+ e.$('#floating-preview-close').onclick();e.context.restoreFloatingPreview();
  const again=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));assert.equal(again.width,g.width);
 });
 
 test('size rail ranges from button-sized to viewport-sized and stays synchronized with corners and full screen',async()=>{
- const e=await editor();e.open();e.$('#floating-preview-toggle').onclick();
+ const e=await editor();e.open();e.context.restoreFloatingPreview();
  const geometry=()=>JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
  const original=e.$('#preview-canvas');
  e.$('#floating-preview-size').oninput({target:{value:'0'}});assert.equal(geometry().width,80);
@@ -73,7 +72,7 @@ test('size rail ranges from button-sized to viewport-sized and stays synchronize
 });
 
 test('vertical opacity and size rails change only the preview and adapt to keyboard bounds',async()=>{
- const e=await editor();e.open();e.$('#floating-preview-toggle').onclick();const page=e.context.activePage();
+ const e=await editor();e.open();e.context.restoreFloatingPreview();const page=e.context.activePage();
  e.$('#floating-preview-opacity').oninput({target:{value:'20'}});
  assert.equal(e.$('#floating-preview-canvas').style.opacity,.2);
  assert.equal(e.$('#floating-preview-opacity').attributes.get('aria-valuetext'),'20%');
@@ -84,7 +83,7 @@ test('vertical opacity and size rails change only the preview and adapt to keybo
 });
 
 test('collapsed card can move and expand at its new position without losing opacity or chosen size',async()=>{
- const e=await editor();e.open();e.$('#floating-preview-toggle').onclick();
+ const e=await editor();e.open();e.context.restoreFloatingPreview();
  const geometry=()=>JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
  const width=geometry().width;
  e.$('#floating-preview-opacity').oninput({target:{value:'55'}});
@@ -95,4 +94,15 @@ test('collapsed card can move and expand at its new position without losing opac
  assert.equal(geometry().width,width);assert.equal(geometry().top,320);
  assert.equal(geometry().left+geometry().width,miniature.left+miniature.width);
  assert.equal(e.$('#floating-preview-canvas').style.opacity,.55);
+});
+
+test('mobile editor opens with a live movable miniature without an extra preview button',async()=>{
+ const e=await editor();e.open();
+ const g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
+ assert.equal(g.width,80);assert.equal(e.$('#floating-preview-panel').hidden,false);
+ assert(e.$('#floating-preview').classes.has('small-floating-preview'));
+ e.context.setFloatingPreviewPosition(20,120);
+ e.context.renderPreview();
+ const moved=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
+ assert.equal(moved.left,20);assert.equal(moved.top,120);
 });

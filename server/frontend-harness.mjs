@@ -10,7 +10,7 @@ export async function frontend({reducedMotion=true}={}){
    set innerHTML(value){markup=value;this.children=[];},get innerHTML(){return markup;},
    style:{setProperty:(key,value)=>styles.set(key,value),removeProperty:key=>styles.delete(key)},
    classList:{toggle(key,on){on?classes.add(key):classes.delete(key);},add:key=>classes.add(key),remove:key=>classes.delete(key)},
-   getContext:()=>ctx,toBlob:fn=>fn({type:'image/png'}),toDataURL:()=>('data:image/png;base64,'+Buffer.from('canvas').toString('base64')),
+   getBoundingClientRect:()=>({left:0,top:0,right:390,bottom:740,width:390,height:740}),getContext:()=>ctx,toBlob:fn=>fn({type:'image/png'}),toDataURL:()=>('data:image/png;base64,'+Buffer.from('canvas').toString('base64')),
    getAttribute:key=>attributes.get(key),setAttribute:(key,value)=>attributes.set(key,value),removeAttribute:key=>attributes.delete(key),addEventListener:(event,fn)=>events.set(event,fn),
    querySelector:()=>element(),append(...children){this.children.push(...children);},replaceChildren(...children){this.children=children;},remove(){},showModal(){this.open=true;},close(){this.open=false;events.get('close')?.();},scrollIntoView(){},contains(){return false;},focus(){},animate(){return {cancel(){}};}};
  }
