@@ -42,30 +42,51 @@ $('#close-preview').onclick=()=>$('#preview-dialog').close();
 $('#return-to-editor').onclick=()=>$('#preview-dialog').close();
 
 
-// Resize only the displayed canvas; export always keeps the selected resolution.
-const previewSize=$('#preview-size');
-previewSize.value=mobileEditor.matches||landscapeEditor.matches?25:55;
+// Resize only the displayed canvas; intrinsic dimensions remain the export resolution.
+let previewHeight=null;
+const previewHandle=$('#preview-resize-handle');
+function previewLimits(){
+ const height=Math.round(window.visualViewport?.height||window.innerHeight);
+ return {min:64,max:Math.max(64,height-(mobileEditor.matches||landscapeEditor.matches?240:190))};
+}
 function syncPreviewSize(){
  const height=Math.round(window.visualViewport?.height||window.innerHeight);
- const mobile=mobileEditor.matches||landscapeEditor.matches;
- const requested=height*Number($('#preview-size').value||25)/100;
- const pixels=Math.max(56,Math.round(Math.min(requested,height-(mobile?260:190))));
+ const limits=previewLimits();
+ if(previewHeight===null)previewHeight=Math.round(height*((mobileEditor.matches||landscapeEditor.matches)?0.25:0.55));
+ const pixels=Math.max(limits.min,Math.min(limits.max,previewHeight));
  $('#preview-canvas').style.setProperty('--preview-size',pixels+'px');
- $('#preview-size-value').textContent=pixels+' px';
+ previewHandle.setAttribute('aria-valuemin',String(limits.min));
+ previewHandle.setAttribute('aria-valuemax',String(limits.max));
+ previewHandle.setAttribute('aria-valuenow',String(Math.round(pixels)));
+ previewHandle.setAttribute('aria-valuetext',Math.round(pixels)+' pixels de prévia; resolução da arte final preservada');
 }
-previewSize.oninput=syncPreviewSize;
+let previewDrag=null;
+previewHandle.addEventListener('pointerdown',event=>{
+ if(event.button!==0||!event.isPrimary)return;
+ event.preventDefault();
+ previewDrag={id:event.pointerId,y:event.clientY,height:$('#preview-canvas').getBoundingClientRect().height,requested:previewHeight};
+ previewHandle.setPointerCapture(event.pointerId);
+ previewHandle.classList.add('is-dragging');
+});
+previewHandle.addEventListener('pointermove',event=>{
+ if(!previewDrag||event.pointerId!==previewDrag.id)return;
+ const limits=previewLimits();
+ previewHeight=Math.round(Math.max(limits.min,Math.min(limits.max,previewDrag.height+event.clientY-previewDrag.y)));
+ syncPreviewSize();
+});
+function endPreviewDrag(event){
+ if(!previewDrag||event.pointerId!==previewDrag.id)return;
+ if(event.type==='pointercancel'){previewHeight=previewDrag.requested;syncPreviewSize();}
+ previewDrag=null;previewHandle.classList.remove('is-dragging');
+ if(previewHandle.hasPointerCapture(event.pointerId))previewHandle.releasePointerCapture(event.pointerId);
+}
+previewHandle.addEventListener('pointerup',endPreviewDrag);
+previewHandle.addEventListener('pointercancel',endPreviewDrag);
+previewHandle.addEventListener('lostpointercapture',endPreviewDrag);
+previewHandle.addEventListener('keydown',event=>{
+ const limits=previewLimits(),current=$('#preview-canvas').getBoundingClientRect().height;
+ const sizes={ArrowUp:current-16,ArrowDown:current+16,ArrowLeft:current-16,ArrowRight:current+16,Home:limits.min,End:limits.max};
+ if(!(event.key in sizes))return;
+ event.preventDefault();previewHeight=Math.max(limits.min,Math.min(limits.max,sizes[event.key]));syncPreviewSize();
+});
 syncPreviewSize();
-
-function syncExpandButtonOverlap(){
- const button=$('#expand-preview'),canvas=$('#preview-canvas');
- if(!mobileEditor.matches||!$('#editor').open){button.style.removeProperty('opacity');return;}
- const a=button.getBoundingClientRect(),b=canvas.getBoundingClientRect();
- const width=Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left));
- const height=Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
- const overlap=(width*height)/(a.width*a.height||1);
- button.style.opacity=String(1-.65*Math.min(1,overlap));
-}
-previewSize.addEventListener('input',()=>requestAnimationFrame(syncExpandButtonOverlap));
-window.addEventListener('resize',()=>requestAnimationFrame(syncExpandButtonOverlap));
-if(window.ResizeObserver)new ResizeObserver(syncExpandButtonOverlap).observe($('#preview-canvas'));
-$('#editor').addEventListener('close',syncExpandButtonOverlap);

@@ -221,3 +221,13 @@ button,a,[role="button"]{touch-action:manipulation}
 }
 
 .projects-open{margin:0 0 14px}.editor-header-actions{display:flex;align-items:center;gap:10px}.editor-header-actions .secondary-button{padding:10px 12px}.projects-panel{padding:24px;width:min(520px,90vw)}.projects-panel header{display:flex;align-items:center;justify-content:space-between}.projects-panel h2{margin:0;font-size:23px}.projects-panel p{line-height:1.5;color:#65765e}.project-row{display:flex;align-items:center;gap:8px;padding:12px 0;border-top:1px solid #dce2d3}.project-row div{flex:1;min-width:0}.project-row strong{display:block;overflow-wrap:anywhere}.project-row small{color:#687863}.active-category-chip{cursor:pointer} @media(max-width:580px){.editor-header-actions{gap:6px}.editor-header-actions .secondary-button{font-size:11px;padding:9px}.project-row{flex-wrap:wrap}}
+
+/* Resize the preview from its lower border, without changing the artwork. */
+#editor .preview-area{position:relative;padding-bottom:22px}
+.preview-resize-handle{position:absolute;left:0;right:0;bottom:-12px;width:100%;height:28px;z-index:2;border:0;padding:0;background:transparent;cursor:ns-resize;touch-action:none;user-select:none;-webkit-user-select:none}
+.preview-resize-handle:before{content:'';position:absolute;left:0;right:0;top:13px;height:1px;background:#b8c5ae}
+.preview-resize-handle span{position:relative;display:block;width:44px;height:6px;margin:0;border-radius:8px;background:#7c9273;box-shadow:0 0 0 5px #e9ecdf;transition:background .15s,width .15s}
+.preview-resize-handle:hover span,.preview-resize-handle.is-dragging span{width:54px;background:#315f47}
+.preview-resize-handle:focus-visible{outline:2px solid #315f47;outline-offset:-3px}
+.editor-back{margin:0 0 14px}
+@media(prefers-reduced-motion:reduce){.preview-resize-handle span{transition:none}}
