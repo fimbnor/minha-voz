@@ -231,3 +231,49 @@ button,a,[role="button"]{touch-action:manipulation}
 .preview-resize-handle:focus-visible{outline:2px solid #315f47;outline-offset:-3px}
 .editor-back{margin:0 0 14px}
 @media(prefers-reduced-motion:reduce){.preview-resize-handle span{transition:none}}
+
+/* Task screens keep the mobile workspace free for controls and the keyboard. */
+.editor-step-label{display:block;font-size:12px;color:#65765e;margin-top:5px}
+.editor-navigation{display:flex;gap:6px;padding:10px 20px;border-bottom:1px solid var(--line);overflow-x:auto;flex-shrink:0;scrollbar-width:thin;background:#fafbf6}
+.editor-navigation button{flex-shrink:0;min-height:40px;padding:9px 14px;border-radius:24px;background:transparent;color:#526849;font-size:13px}
+.editor-navigation button[aria-current=step]{background:#234e3c;color:white}
+#editor .editor-step[hidden]{display:none}
+#editor .ai-instructions{margin-top:0;padding-top:0;border-top:0}
+#editor .editor-step>.primary-button{margin-top:24px}
+#editor .editor-controls{padding-top:24px}
+#editor .editor-controls h3{margin-top:0}
+#editor .editor-step>.text-button.centered{display:flex;margin:16px auto}
+#editor .editor-shell{display:flex;flex-direction:column;overflow:hidden}
+#editor .editor-body{flex:1;min-height:0;overflow:hidden}
+#editor .editor-controls{max-height:none;overflow-y:auto}
+@media(max-width:580px),(max-width:900px) and (max-height:500px){
+ #editor .preview-area{display:none}
+ #editor .editor-body{display:flex;flex-direction:column}
+ #editor .editor-controls{padding:22px 20px calc(28px + env(safe-area-inset-bottom));scroll-padding-block:20px}
+ #editor .editor-header{padding:12px;gap:8px}
+ #editor .editor-kicker{display:none}
+ #editor .editor-header h2{font-size:22px;margin:0}
+ #editor .editor-header-actions{gap:5px}
+ #editor .editor-header-actions .secondary-button{font-size:12px;padding:10px 8px;min-height:40px}
+ #editor .editor-header-actions .icon-button{width:38px;height:38px}
+ #editor .editor-navigation{padding:6px 12px;gap:4px}
+ #editor .editor-navigation button{padding:8px 12px}
+ #editor.compact-editor .editor-header{padding:6px 10px}
+ #editor.compact-editor .editor-navigation{padding-block:2px}
+ #editor.compact-editor .editor-navigation button{min-height:32px;padding-block:5px}
+ #editor.compact-editor #save-project{display:none}
+ #editor .editor-controls textarea{min-height:120px}
+ #editor .ai-instructions textarea{min-height:160px}
+}
+@media(max-width:360px){#editor .editor-header h2{font-size:18px}#editor .editor-header-actions .secondary-button{font-size:11px;padding-inline:6px}}
+.photo-adjustments{margin-top:24px;border:1px solid var(--line);border-radius:10px;padding:16px}
+.photo-adjustments summary{cursor:pointer;font-weight:600;min-height:28px;line-height:1.6}
+.photo-adjustments .photo-studio{margin-top:16px}
+@media(max-width:580px),(max-width:900px) and (max-height:500px){
+ #editor .small-note{font-size:13px;line-height:1.6}
+ #editor .field-label{font-size:14px}
+ #editor .control-description{font-size:15px;line-height:1.6}
+ #editor .consent-panel .checkbox-row{font-size:14px;line-height:1.5}
+ #editor .primary-button,#editor .editor-controls .secondary-button{font-size:14px;min-height:44px}
+ #editor .editor-controls .text-button{font-size:14px;min-height:44px}
+}

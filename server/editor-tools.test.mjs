@@ -12,7 +12,7 @@ function editor(){
   return {open:false,width:0,height:0,textContent:'',properties,classes,listeners,
    style:{setProperty:(key,value)=>properties.set(key,value),removeProperty:key=>properties.delete(key)},
    classList:{toggle(key,on){on?classes.add(key):classes.delete(key);},remove:key=>classes.delete(key)},
-   addEventListener:(key,fn)=>listeners.set(key,fn),contains:target=>target?.control===true,
+   setAttribute(){},addEventListener:(key,fn)=>listeners.set(key,fn),contains:target=>target?.control===true,
    getContext:()=>({drawImage:(...args)=>copies.push(args)}),
    showModal(){this.open=true;},close(){this.open=false;this.listeners.get('close')?.();},
    scrollIntoView:()=>scrolled.push(id)};
@@ -64,4 +64,11 @@ test('switching editor steps scrolls only the settings, leaving the preview in p
  const controls={scrollTop:900,scrollIntoView(){throw Error('must not scroll the editor or hide the canvas');}},state={step:1};
  const context=vm.createContext({state,$:()=>controls,$$:()=>[],matchMedia:()=>({matches:true})});vm.runInContext(code,context);
  context.setStep(3);assert.equal(state.step,3);assert.equal(controls.scrollTop,0);
+});
+
+test('mobile preview actions open the current card and return to the same task',()=>{
+ const e=editor();e.state.step=5;e.$('#editor').open=true;
+ e.$('#view-card').onclick();assert.equal(e.$('#preview-dialog').open,true);
+ e.$('#return-to-editor').onclick();assert.equal(e.state.step,5);
+ e.$('#review-card').onclick();assert.equal(e.$('#preview-dialog').open,true);
 });
