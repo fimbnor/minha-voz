@@ -208,3 +208,11 @@ button,a,[role="button"]{touch-action:manipulation}
 }
 
 .category-guide{margin:12px 0 18px;flex-wrap:wrap}.category-guide>span{flex:1 1 180px}.category-guide .category-guide-close{background:transparent;color:#214e3e;border:0;font-size:22px;padding:4px;min-width:40px}
+
+/* First-category help appears as a compact, dismissible popup. */
+.category-guide{position:fixed;z-index:100;right:20px;bottom:calc(20px + env(safe-area-inset-bottom, 0px));width:min(360px,calc(100vw - 32px));margin:0;padding:16px;background:#f9fbf5;border:1px solid #c3d2bf;border-radius:14px;box-shadow:0 10px 34px #122d2538;animation:category-guide-enter .25s ease-out}
+.category-guide>span{flex:1 1 220px;padding-right:28px;line-height:1.5}
+.category-guide .category-guide-close{position:absolute;right:8px;top:6px}
+@keyframes category-guide-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:580px){.category-guide{right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px))}}
+@media(prefers-reduced-motion:reduce){.category-guide{animation:none}}

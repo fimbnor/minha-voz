@@ -129,10 +129,10 @@ function renderOptions(){
 }
 function renderActiveCategory(){const box=$('#active-category');box.replaceChildren();box.hidden=categoryFilter==='all';if(box.hidden)return;const chip=document.createElement('span');chip.className='active-category-chip';chip.appendChild(document.createTextNode(categoryFilter));const clear=document.createElement('button');clear.type='button';clear.textContent='Mostrar todos';clear.onclick=()=>{categoryFilter='all';try{localStorage.removeItem('minhavoz-category');}catch{}renderCategoryShortcuts();renderCatalog();};box.append(chip,clear);}
 let categoryGuideShown=false;
-try{categoryGuideShown=localStorage.getItem('minhavoz-category-guide-ack-v2')==='1';}catch{}
+try{categoryGuideShown=localStorage.getItem('minhavoz-category-guide-ack-v3')==='1';}catch{}
 function dismissCategoryGuide(){
  categoryGuideShown=true;
- try{localStorage.setItem('minhavoz-category-guide-ack-v2','1');}catch{}
+ try{localStorage.setItem('minhavoz-category-guide-ack-v3','1');}catch{}
  document.querySelector('.category-guide')?.remove();
 }
 function showCategoryGuide(){
@@ -141,7 +141,7 @@ function showCategoryGuide(){
  const message=document.createElement('span');message.textContent='Categoria escolhida! Agora selecione um modelo para personalizar seu card.';
  const go=document.createElement('button');go.type='button';go.textContent='Ver modelos';go.onclick=()=>{dismissCategoryGuide();$('#campaigns').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});};
  const close=document.createElement('button');close.type='button';close.className='category-guide-close';close.textContent='×';close.setAttribute('aria-label','Fechar orientação');close.onclick=dismissCategoryGuide;
- guide.append(message,go,close);$('#toggle-categories').after(guide);
+ guide.append(message,go,close);document.body.append(guide);
 }
 function renderCategoryShortcuts(){
  renderActiveCategory();
