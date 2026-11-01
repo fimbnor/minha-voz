@@ -115,7 +115,7 @@ function selectCampaign(c){
  syncEditorFields();renderOptions();renderPalette();renderPreview();
 }
 function openEditor(c){
- currentProjectId=null;
+ currentProjectId=null;currentProjectOwner=null;
  state.pages=[newPage(c)];state.slide=0;state.carouselInitialized=false;state.format='feed';
  if(typeof resetAIEdits==='function')resetAIEdits();
  syncEditorFields();renderOptions();renderPalette();setStep(1);renderPreview();

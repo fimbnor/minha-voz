@@ -95,3 +95,13 @@ Não foi usada uma chave real, não houve chamada real ao Gemini e não houve te
 - https://ai.google.dev/gemini-api/docs/api-key
 - https://render.com/docs/web-services
 - https://render.com/docs/configure-environment-variables
+
+## Firebase Authentication e projetos locais
+
+A integração de login está preparada, mas deve ser testada antes de ser ativada em produção. Sem `FIREBASE_AUTH_ENABLED=true`, o acesso usa a senha de testes existente. Com ela habilitada, o Gemini exige um token válido do Firebase Authentication.
+
+1. No Firebase, ative login Google e e-mail/senha e adicione o domínio do Render aos domínios autorizados.
+2. No Render, configure `FIREBASE_AUTH_ENABLED=true` e `FIREBASE_WEB_CONFIG` com o objeto JSON da configuração web, em uma linha. Mantenha `PUBLIC_ORIGIN`, `GEMINI_API_KEY` e as demais variáveis existentes. Não inclua chaves privadas no JSON web.
+3. Execute `npm ci`, `npm run build` e os testes. Teste cadastro, login, recuperação de senha e a separação de projetos entre duas contas no mesmo aparelho antes de publicar.
+
+Os projetos, fotos e edições são guardados no IndexedDB do navegador. Projetos de uma conta são exibidos quando ela está ativa no mesmo navegador; projetos antigos sem conta continuam visíveis no aparelho e, ao salvá-los conectado, passam a ser associados à conta. Essa associação é uma separação de interface, não uma proteção contra quem tem acesso ao dispositivo ou aos dados do navegador. Limpar os dados do navegador, trocar de navegador ou aparelho pode tornar os projetos indisponíveis; eles não são sincronizados nem possuem backup na nuvem. Exportar o card baixa apenas a imagem final.
