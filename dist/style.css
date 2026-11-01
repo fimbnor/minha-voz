@@ -200,3 +200,9 @@ button,a,[role="button"]{touch-action:manipulation}
  .top-actions{position:static}
  .topbar .help-button{position:absolute;right:24px;top:28px;width:26px;height:26px;z-index:5}
 }
+
+/* Maior legibilidade dos filtros em telas de celular. */
+@media (max-width: 580px) {
+  .topic-shortcuts button, .filters .filter { font-size: 13px; }
+  .filters .filter > span { font-size: 11px; }
+}
