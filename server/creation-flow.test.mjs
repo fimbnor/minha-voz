@@ -147,6 +147,9 @@ test('starter background uploads initialize carousel pages, while later replacem
 
 test('home solid-color entry starts without suggested copy and skips the model screen',async()=>{
  const e=await frontend();e.$('#start-solid').onclick();
+ assert.equal(e.$('#editor').open,false);
+ assert.equal(e.$('#campaign-grid').children.length,7);
+ e.$('#campaign-grid').children[0].onclick();
  assert.equal(e.state.backgroundMode,'color');assert.equal(e.state.text,'');assert.equal(e.state.step,0);
  assert.equal(e.$('#base-color-options').hidden,false);
  e.change('#format','story');e.input('#background-color','#e7c746');
@@ -154,4 +157,17 @@ test('home solid-color entry starts without suggested copy and skips the model s
  e.$('#flow-back').onclick();assert.equal(e.state.backgroundMode,'color');
  e.$('#start-creation').onclick();assert.equal(e.state.backgroundMode,'image');
  e.$('#flow-next').onclick();assert.equal(e.state.step,1);
+});
+
+test('solid style replaces catalog with colors, waits for selection and restores models on another style',async()=>{
+ const e=await frontend();const modelCount=e.$('#campaign-grid').children.length;
+ e.$('#start-solid').onclick();
+ assert.equal(e.$('#editor').open,false);assert.equal(e.$('#catalog-title').textContent,'Escolha uma cor');
+ assert.equal(e.$('#start-solid').attributes.get('aria-pressed'),'true');
+ assert.equal(e.$('#campaign-grid').children.length,7);
+ e.$('#campaign-grid').children[3].onclick();assert.equal(e.state.backgroundColor,'#b96d5a');assert.equal(e.state.backgroundMode,'color');
+ e.context.closeEditor();
+ e.selectors.get('[data-filter]').find(b=>b.dataset.filter==='all').onclick();
+ assert.equal(e.$('#start-solid').attributes.get('aria-pressed'),'false');
+ assert.equal(e.$('#catalog-title').textContent,'Modelos');assert.equal(e.$('#campaign-grid').children.length,modelCount);
 });

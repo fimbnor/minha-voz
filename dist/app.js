@@ -108,7 +108,25 @@ ctx.textBaseline='alphabetic';for(let i=0;i<lines.length;i++)ctx.fillText(lines[
 if(!opts.photo&&opts.backgroundMode!=='color'){ctx.font=`${14*k}px Arial`;ctx.fillText('SUA VOZ FAZ PARTE.',margin,yy+lines.length*fontSize*1.04+25*k);ctx.fillStyle=p.accent;ctx.fillRect(margin,yy+lines.length*fontSize*1.04+40*k,60*k,3*k);}
 drawSignature(ctx,w,h,opts);ctx.font=`${38*k}px Georgia`;ctx.textAlign='right';ctx.fillText('✳',w-margin,h-28*k);ctx.restore();drawLogo(ctx,w,h,opts);
 }
-function renderCatalog(){const list=visibleCampaigns(campaigns,{style:filter,category:categoryFilter,onlySaved,saved,query});$('#campaign-grid').innerHTML='';list.forEach(c=>{let e=document.createElement('article');e.className='campaign-card';e.innerHTML=`<button class="campaign-open" aria-label="Criar card: ${c.name}"><div class="campaign-art">${c.nativeScene?'<canvas width="480" height="600" role="img" aria-label="'+c.name+'"></canvas>':'<img src="'+c.backgroundUrl+'" alt="'+c.name+'" loading="lazy" width="480" height="600">'}</div><span class="campaign-category">${IMAGE_STYLES[c.imageStyle].label} · ${c.category}</span><h3>${c.name}</h3></button><button class="favorite ${saved.has(c.id)?'selected':''}" aria-label="${saved.has(c.id)?'Remover dos':'Adicionar aos'} favoritos: ${c.name}" aria-pressed="${saved.has(c.id)}">${icon('heart')}</button>`;$('#campaign-grid').append(e);if(c.nativeScene)drawCard(e.querySelector('canvas'),c);e.querySelector('.campaign-open').onclick=()=>{if(document.querySelector('.category-guide'))dismissCategoryGuide();openEditor(c);};e.querySelector('.favorite').onclick=()=>{saved.has(c.id)?saved.delete(c.id):saved.add(c.id);try{localStorage.setItem('minhavoz-favorites',JSON.stringify([...saved]));}catch{toast('Favoritos disponíveis apenas nesta sessão.');}renderCatalog();};});$('#saved-count').textContent=saved.size;$('#catalog-count').textContent=`${list.length} ${list.length===1?'modelo':'modelos'}`;$('#empty-state').hidden=list.length>0;}
+function renderSolidCatalog(){
+ const grid=$('#campaign-grid');grid.innerHTML='';
+ const colors=[...palettes,{bg:'#ffffff',name:'Branco'}];
+ for(const color of colors){
+  const button=document.createElement('button');button.type='button';button.className='solid-base-card';
+  button.style.setProperty('--solid-color',color.bg);button.setAttribute('aria-label','Criar card com fundo '+color.name);
+  button.innerHTML='<span class="solid-base-sample" aria-hidden="true"></span><strong>'+color.name+'</strong>';
+  button.onclick=()=>{openEditor(campaigns.find(c=>c.id==='amor')||campaigns[0],{backgroundMode:'color'});chooseBaseColor(color.bg);};
+  grid.append(button);
+ }
+ $('#catalog-count').textContent=colors.length+' cores';$('#empty-state').hidden=true;
+}
+function renderCatalog(){
+ const solid=filter==='solid'&&!onlySaved;
+ $('.campaign-section').classList.toggle('solid-catalog',solid);
+ $('#start-solid').classList.toggle('active',solid);$('#start-solid').setAttribute('aria-pressed',String(solid));
+ $('#catalog-title').textContent=onlySaved?'Meus favoritos':solid?'Escolha uma cor':'Modelos';
+ if(solid){renderSolidCatalog();return;}
+const list=visibleCampaigns(campaigns,{style:filter==='solid'?'all':filter,category:categoryFilter,onlySaved,saved,query});$('#campaign-grid').innerHTML='';list.forEach(c=>{let e=document.createElement('article');e.className='campaign-card';e.innerHTML=`<button class="campaign-open" aria-label="Criar card: ${c.name}"><div class="campaign-art">${c.nativeScene?'<canvas width="480" height="600" role="img" aria-label="'+c.name+'"></canvas>':'<img src="'+c.backgroundUrl+'" alt="'+c.name+'" loading="lazy" width="480" height="600">'}</div><span class="campaign-category">${IMAGE_STYLES[c.imageStyle].label} · ${c.category}</span><h3>${c.name}</h3></button><button class="favorite ${saved.has(c.id)?'selected':''}" aria-label="${saved.has(c.id)?'Remover dos':'Adicionar aos'} favoritos: ${c.name}" aria-pressed="${saved.has(c.id)}">${icon('heart')}</button>`;$('#campaign-grid').append(e);if(c.nativeScene)drawCard(e.querySelector('canvas'),c);e.querySelector('.campaign-open').onclick=()=>{if(document.querySelector('.category-guide'))dismissCategoryGuide();openEditor(c);};e.querySelector('.favorite').onclick=()=>{saved.has(c.id)?saved.delete(c.id):saved.add(c.id);try{localStorage.setItem('minhavoz-favorites',JSON.stringify([...saved]));}catch{toast('Favoritos disponíveis apenas nesta sessão.');}renderCatalog();};});$('#saved-count').textContent=saved.size;$('#catalog-count').textContent=`${list.length} ${list.length===1?'modelo':'modelos'}`;$('#empty-state').hidden=list.length>0;}
 function setStep(n){if(n===5||n===1&&state.backgroundMode==='color')n=0;state.step=n;if(n>=2)state.creationSetup=false;$$('[data-panel]').forEach(e=>e.hidden=Number(e.dataset.panel)!==n);$$('[data-step]').forEach(e=>{e.classList.toggle('current',Number(e.dataset.step)===n);e.setAttribute('aria-current',Number(e.dataset.step)===n?'step':'false');});$('.editor-controls').scrollTop=0;if(typeof syncFlowUI==='function')syncFlowUI();}
 function selectCampaign(c){
  if(state.campaign.id===c.id&&state.backgroundMode==='image'&&!state.background)return;

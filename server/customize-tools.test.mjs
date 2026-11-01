@@ -8,7 +8,7 @@ test('format tiles retain selection and home selects the background path',async(
  const [formats]=groups.map(g=>g.querySelectorAll());assert.equal(formats.length,6);
  formats.find(b=>b.dataset.choice==='story').onclick();assert.equal(e.state.format,'story');assert.equal(e.$('#preview-canvas').height,1920);
  assert.equal(formats.find(b=>b.dataset.choice==='story').attributes.get('aria-checked'),'true');
- e.$('#start-solid').onclick();assert.equal(e.state.backgroundMode,'color');
+ e.$('#start-solid').onclick();e.$('#campaign-grid').children[0].onclick();assert.equal(e.state.backgroundMode,'color');
  e.open();assert.equal(formats[0].attributes.get('aria-checked'),'true');assert.equal(e.state.backgroundMode,'image');
  let prevented=false;formats[0].events.get('keydown')({key:'End',preventDefault(){prevented=true;}});assert(prevented);assert.equal(e.state.format,'carousel');
 });
