@@ -216,3 +216,11 @@ button,a,[role="button"]{touch-action:manipulation}
 @keyframes category-guide-enter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @media(max-width:580px){.category-guide{right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px))}}
 @media(prefers-reduced-motion:reduce){.category-guide{animation:none}}
+
+/* Filtros legíveis e distribuídos simetricamente no celular. */
+@media (max-width: 580px) {
+  .filters .filter { font-size: 12px; flex: 1 1 0; }
+}
+@media (max-width: 460px) {
+  .filters .filter { flex-basis: calc(50% - 3px); }
+}
