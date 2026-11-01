@@ -70,11 +70,17 @@ Esta autenticação é para testes privados com uma senha compartilhada. Contado
 
 Recorte experimental de pessoas com MediaPipe Tasks Vision 0.10.21 e Selfie Segmenter float16 v1, servidos na própria origem. Ajustes locais de exposição, contraste, temperatura e saturação, comparação/restauração do original e regulagem de bordas. Não há pincel de máscara nesta versão. Objetos e pets não são garantidos pelo modelo de retrato. Arquivos com licenças de terceiros ficam em `dist/vendor/mediapipe`.
 
+## Editor no celular
+
+A prévia fica fixa acima dos controles, que rolam em uma área separada. O botão **Ampliar** abre uma visão maior do card atual e **Voltar aos ajustes** retorna à mesma posição das opções. Trocar de etapa reinicia apenas a rolagem dos controles.
+
+A altura do editor acompanha a área visível do navegador com `VisualViewport`, com uma prévia menor quando há pouco espaço, inclusive ao abrir o teclado. Em telas horizontais pequenas, prévia e controles ficam lado a lado. A resolução da imagem exportada permanece a do formato selecionado.
+
 ## Validação desta entrega
 
-41 testes automatizados com provedor simulado: captura da composição, edição sequencial, aplicação sem sobreposição de elementos, descarte, desfazer, invalidação de resultados antigos, isolamento de páginas/formatos/modelos, inicialização com o catálogo atual, consentimento, rejeição do fluxo antigo e validações da API, além dos testes de autenticação, privacidade, erros, cotas e recorte de logotipo. Sintaxe dos scripts do navegador verificada.
+46 testes automatizados com provedor simulado: captura da composição, edição sequencial, aplicação sem sobreposição de elementos, descarte, desfazer, invalidação de resultados antigos, isolamento de páginas/formatos/modelos, inicialização com o catálogo atual, ajuste de viewport/teclado simulado, ampliação da prévia, navegação entre etapas sem deslocar a imagem, consentimento, rejeição do fluxo antigo e validações da API, além dos testes de autenticação, privacidade, erros, cotas e recorte de logotipo. Sintaxe dos scripts do navegador verificada.
 
-Não foi usada uma chave real, não houve chamada real ao Gemini e não houve teste completo no Render. A qualidade visual da geração, acesso ao modelo, faturamento e compatibilidade em aparelhos reais precisam ser confirmados depois. A inicialização dos scripts foi testada em DOM simulado. O teste visual em navegador não foi executado porque o Chromium não está instalado neste ambiente.
+Não foi usada uma chave real, não houve chamada real ao Gemini e não houve teste completo no Render. A qualidade visual da geração, acesso ao modelo, faturamento e compatibilidade em aparelhos reais precisam ser confirmados depois. A inicialização dos scripts foi testada em DOM simulado. O teste visual em navegador ficou pendente porque o navegador de validação não conseguiu acessar os arquivos locais do ambiente de desenvolvimento. O comportamento do teclado ainda precisa ser conferido em aparelhos reais.
 
 ## Documentação da integração
 

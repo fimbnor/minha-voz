@@ -1,0 +1,41 @@
+'use strict';
+const mobileEditor=matchMedia('(max-width:580px)');
+const landscapeEditor=matchMedia('(max-width:900px) and (max-height:500px)');
+function syncEditorViewport(){
+ const editor=$('#editor');
+ if(!editor.open||!(mobileEditor.matches||landscapeEditor.matches)){
+  editor.style.removeProperty('--editor-height');editor.style.removeProperty('--editor-top');editor.classList.remove('compact-editor');return;
+ }
+ const viewport=window.visualViewport;
+ const height=Math.round(viewport?.height||window.innerHeight);
+ editor.style.setProperty('--editor-height',height+'px');
+ editor.style.setProperty('--editor-top',Math.round(viewport?.offsetTop||0)+'px');
+ editor.classList.toggle('compact-editor',height<500);
+}
+let editorViewportFrame;
+function scheduleEditorViewport(){
+ cancelAnimationFrame(editorViewportFrame);
+ editorViewportFrame=requestAnimationFrame(()=>{
+  syncEditorViewport();
+  const active=document.activeElement;
+  if($('#editor').open&&(mobileEditor.matches||landscapeEditor.matches)&&$('.editor-controls').contains(active))active.scrollIntoView({block:'nearest'});
+ });
+}
+window.addEventListener('resize',scheduleEditorViewport);
+window.visualViewport?.addEventListener('resize',scheduleEditorViewport);
+window.visualViewport?.addEventListener('scroll',syncEditorViewport);
+$('#editor').addEventListener('close',()=>{
+ cancelAnimationFrame(editorViewportFrame);syncEditorViewport();
+ if($('#preview-dialog').open)$('#preview-dialog').close();
+});
+$('#expand-preview').onclick=()=>{
+ renderPreview();
+ const original=$('#preview-canvas'),expanded=$('#expanded-preview-canvas');
+ expanded.width=original.width;expanded.height=original.height;
+ expanded.getContext('2d').drawImage(original,0,0);
+ expanded.classList.toggle('circular-profile',state.format==='instagram-profile');
+ $('#expanded-preview-label').textContent=$('#preview-label').textContent;
+ $('#preview-dialog').showModal();
+};
+$('#close-preview').onclick=()=>$('#preview-dialog').close();
+$('#return-to-editor').onclick=()=>$('#preview-dialog').close();

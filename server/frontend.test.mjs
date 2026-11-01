@@ -7,11 +7,11 @@ test('the shipped catalog and browser scripts initialize the editor and all bann
  const root=new URL('../dist/',import.meta.url),nodes=new Map();
  const html=readFileSync(new URL('index.html',root),'utf8');
  const drawing=new Proxy({}, {get:(_,key)=>key==='measureText'?text=>({width:text.length*10}):key==='createLinearGradient'||key==='createRadialGradient'?()=>({addColorStop(){}}):()=>{}});
- function element(){return {style:{setProperty(){}},dataset:{},classList:{toggle(){},add(){},remove(){}},width:720,height:900,value:'',children:[],getContext:()=>drawing,setAttribute(){},removeAttribute(){},addEventListener(){},querySelector:()=>element(),append(child){this.children.push(child);},showModal(){this.open=true;},scrollIntoView(){}};}
+ function element(){return {style:{setProperty(){},removeProperty(){}},dataset:{},classList:{toggle(){},add(){},remove(){}},width:720,height:900,value:'',children:[],getContext:()=>drawing,setAttribute(){},removeAttribute(){},addEventListener(){},querySelector:()=>element(),append(child){this.children.push(child);},showModal(){this.open=true;},scrollIntoView(){}};}
  const $=id=>{if(!nodes.has(id))nodes.set(id,element());return nodes.get(id);};
  const heroButtons=[...html.matchAll(/data-hero="([^"]+)"/g)].map(([,id])=>Object.assign(element(),{dataset:{hero:id}}));
  const context=vm.createContext({document:{querySelector:$,querySelectorAll:selector=>selector==='[data-hero]'?heroButtons:[],createElement:()=>element(),body:element()},window:{addEventListener(){}},localStorage:{getItem:()=>null},Image:class{complete=false;},matchMedia:()=>({matches:true}),setTimeout,clearTimeout,fetch:async()=>({ok:true,json:async()=>({available:false,missingConfig:['GEMINI_API_KEY']})}),AbortSignal});
- for(const file of ['profile-tools.js','catalogo-minha-voz/catalogo.js','app.js','photo-tools.js','logo-tools.js','ai-tools.js'])vm.runInContext(readFileSync(new URL(file,root),'utf8'),context,{filename:file});
+ for(const file of ['profile-tools.js','catalogo-minha-voz/catalogo.js','app.js','photo-tools.js','logo-tools.js','ai-tools.js','editor-tools.js'])vm.runInContext(readFileSync(new URL(file,root),'utf8'),context,{filename:file});
  await new Promise(resolve=>setImmediate(resolve));
  assert.equal($('#campaign-grid').children.length,context.window.MINHA_VOZ_CATALOG.templates.length);
  for(const button of heroButtons){
