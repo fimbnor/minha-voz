@@ -1,6 +1,6 @@
 'use strict';
 const floatingPreview=$('#floating-preview');
-let floatingPreviewOpen=false,floatingPreviewDrag=null,floatingPreviewGeometry=null;
+let floatingPreviewOpen=false,floatingPreviewDrag=null,floatingPreviewGeometry=null,floatingPreviewExpandedWidth=220;
 function floatingPreviewBounds(){
  const rect=$('.editor-shell').getBoundingClientRect();
  return {width:rect.width,height:rect.height};
@@ -19,7 +19,9 @@ function paintFloatingPreviewGeometry(){
  floatingPreview.style.left=g.left+'px';floatingPreview.style.top=g.top+'px';
  floatingPreview.style.setProperty('--floating-width',g.width+'px');
  floatingPreview.style.setProperty('--floating-height',g.height+'px');
- floatingPreview.classList.toggle('small-floating-preview',g.width<160||g.height<170);
+ const small=g.width<160||g.height<170;
+ floatingPreview.classList.toggle('small-floating-preview',small);
+ if(!small)floatingPreviewExpandedWidth=g.width;
  const limits=fitFloatingPreview(g.width),range=limits.max-limits.min;
  $('#floating-preview-size').value=range>0?Math.round((g.width-limits.min)/range*100):100;
  $('#floating-preview-size').setAttribute('aria-valuetext',Math.round(g.width)+' pixels de largura');
@@ -52,8 +54,23 @@ function toggleFloatingPreview(open){
  if(open)$('#floating-preview-close').focus({preventScroll:true});
  else $('#floating-preview-toggle').focus({preventScroll:true});
 }
-$('#floating-preview-toggle').onclick=()=>toggleFloatingPreview(!floatingPreviewOpen);
-$('#floating-preview-close').onclick=()=>toggleFloatingPreview(false);
+function restoreFloatingPreview(){
+ if(!floatingPreviewGeometry)return;
+ const right=floatingPreviewGeometry.left+floatingPreviewGeometry.width,size=fitFloatingPreview(floatingPreviewExpandedWidth);
+ Object.assign(floatingPreviewGeometry,{left:right-size.width,width:size.width,height:size.height});clampFloatingPreview();
+ $('#floating-preview-close').focus({preventScroll:true});
+}
+$('#floating-preview-toggle').onclick=()=>{
+ if(floatingPreviewOpen&&floatingPreviewGeometry?.width<160)restoreFloatingPreview();
+ else toggleFloatingPreview(!floatingPreviewOpen);
+};
+$('#floating-preview-close').onclick=()=>{
+ if(!floatingPreviewGeometry)return;
+ const right=floatingPreviewGeometry.left+floatingPreviewGeometry.width,size=fitFloatingPreview(0);
+ Object.assign(floatingPreviewGeometry,{left:right-size.width,width:size.width,height:size.height});clampFloatingPreview();
+ $('#floating-preview-move').focus({preventScroll:true});
+};
+$('#floating-preview-restore').onclick=restoreFloatingPreview;
 $('#floating-preview-full').onclick=()=>{
  const size=fitFloatingPreview(Infinity),bounds=floatingPreviewBounds();
  floatingPreviewGeometry={left:(bounds.width-size.width)/2,top:(bounds.height-size.height)/2,width:size.width,height:size.height};
@@ -117,7 +134,7 @@ function wireFloatingGesture(handle,corner){
 wireFloatingGesture($('#floating-preview-move'));
 for(const corner of ['sw','se','nw','ne'])wireFloatingGesture($('[data-preview-corner="'+corner+'"]'),corner);
 $('#editor').addEventListener('close',()=>{
- releasePreviewSizeTrack();floatingPreviewDrag=null;floatingPreviewGeometry=null;floatingPreviewOpen=false;
+ releasePreviewSizeTrack();floatingPreviewDrag=null;floatingPreviewGeometry=null;floatingPreviewOpen=false;floatingPreviewExpandedWidth=220;
  $('#floating-preview-toggle').setAttribute('aria-expanded','false');$('#floating-preview-panel').hidden=true;
 });
 syncFloatingPreview();
