@@ -199,6 +199,13 @@ function initHero(){
  // One model per category, taken from the current catalog rather than old IDs.
  const slides=[...new Map(campaigns.map(c=>[c.category,c])).values()];
  let index=Math.max(0,slides.findIndex(c=>c.category==='Amor')),current=slides[index];
+ const examples={'Amor':'casal','Mulheres':'mulher','Conquistas':'homem'};
+ const exampleImages={};
+ Object.entries(examples).forEach(([category,name])=>{
+  const img=new Image();exampleImages[category]=img;
+  img.onload=()=>{if(current.category===category&&heroRenderer)heroRenderer();};
+  img.src='/assets/hero-people/'+name+'.webp';
+ });
  let timer,progress,transition,frame,paused=reduced.matches,hovered=false,focused=false,inView=true;
  const poses=[[-14,-8,-8],[18,4,7],[-8,12,-4],[14,-12,10]];
  const pauseButton=$('#hero-pause');
@@ -207,7 +214,7 @@ function initHero(){
  function select(next,animate=true){
   index=(next+slides.length)%slides.length;current=slides[index];
   const c=current,p=palettes[c.color],pose=poses[index%poses.length];
-  heroBackgroundUrl=c.backgroundUrl;heroRenderer=()=>drawCard(canvas,current);heroRenderer();
+  heroBackgroundUrl=c.backgroundUrl;heroRenderer=()=>{const photo=exampleImages[current.category];drawCard(canvas,current,photo?.complete&&photo.naturalWidth?{photo,cutout:true}:{});};heroRenderer();
   canvas.setAttribute('aria-label','Prévia do modelo: '+c.name);
   card.setAttribute('aria-label','Personalizar modelo de '+c.category);
   $('#hero-theme').textContent=c.category;
