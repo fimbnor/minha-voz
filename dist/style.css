@@ -286,10 +286,6 @@ button,a,[role="button"]{touch-action:manipulation}
 #editor .advanced-options>summary{padding:15px 0;cursor:pointer;font-size:13px;font-weight:600;line-height:1.5}
 #editor .advanced-options[open]{padding-bottom:14px}
 #editor .photo-studio{border:0;margin:0;padding:0}
-#editor .ai-discovery{padding:16px;border-radius:10px;background:#e4eedc;margin:18px 0}
-#editor .ai-discovery strong{font-size:14px}
-#editor .ai-discovery p{font-size:12px;line-height:1.6;margin:8px 0 12px}
-#editor .ai-discovery button{min-height:44px;font-size:13px;background:#fffefa}
 #editor .ai-instructions{margin:16px 0 24px;border:1px solid #b7c9aa;border-radius:12px;background:#edf3e5;padding:16px}
 #editor .ai-instructions h3{font-size:23px;margin-top:0}
 #editor .ai-instructions .control-description{color:#526849}
