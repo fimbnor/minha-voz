@@ -29,7 +29,7 @@ async function restoreProject(project){
  resetAIEdits();state.creationSetup=false;state.pages=pages;state.carouselInitialized=!!project.carouselInitialized;
  for(const edit of edits){if(!pages[edit.index])continue;state.slide=edit.index;state.format=edit.format;aiEdits.set(aiScope(),{image:edit.image,layers:aiLayers(),previous:null});}
  state.slide=Math.max(0,Math.min(project.slide||0,pages.length-1));state.format=project.format||'feed';currentProjectId=project.id;
- syncEditorFields();renderOptions();renderPalette();setStep(project.step??1);$('#format').value=state.format;renderPreview();
+ syncEditorFields();renderOptions();setStep(project.step??1);$('#format').value=state.format;renderPreview();
  $('#projects-dialog').close();$('#editor').showModal();document.body.style.overflow='hidden';if(typeof syncEditorViewport==='function')syncEditorViewport();
 }
 async function renderProjects(){
