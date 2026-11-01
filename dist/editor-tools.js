@@ -55,3 +55,17 @@ function syncPreviewSize(){
 }
 previewSize.oninput=syncPreviewSize;
 syncPreviewSize();
+
+function syncExpandButtonOverlap(){
+ const button=$('#expand-preview'),canvas=$('#preview-canvas');
+ if(!mobileEditor.matches||!$('#editor').open){button.style.removeProperty('opacity');return;}
+ const a=button.getBoundingClientRect(),b=canvas.getBoundingClientRect();
+ const width=Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left));
+ const height=Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));
+ const overlap=(width*height)/(a.width*a.height||1);
+ button.style.opacity=String(1-.65*Math.min(1,overlap));
+}
+previewSize.addEventListener('input',()=>requestAnimationFrame(syncExpandButtonOverlap));
+window.addEventListener('resize',()=>requestAnimationFrame(syncExpandButtonOverlap));
+if(window.ResizeObserver)new ResizeObserver(syncExpandButtonOverlap).observe($('#preview-canvas'));
+$('#editor').addEventListener('close',syncExpandButtonOverlap);
