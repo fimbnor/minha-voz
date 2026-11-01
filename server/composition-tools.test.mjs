@@ -82,6 +82,7 @@ test('switching to a circular format carries the current approved AI image inste
 });
 test('carousel posts keep independent photos, source photos, masks, backgrounds, texts, colors and logos',async()=>{
  const e=await frontend();e.open(1);e.change('#format','carousel');
+ e.context.navigateCreation(2);
  const photoA={width:2,height:2,name:'A'},photoB={width:2,height:2,name:'B'};
  e.context.setPagePhoto(e.context.activePage(),photoA);e.input('#signature','@post1');e.input('#signature-color','#ff0000');e.input('#background-color','#001122');e.state.photoMask={name:'mask A'};e.state.logo={name:'logo A'};e.state.photoSettings.exposure=15;e.state.text='Post A';
  e.context.setCurrentPage(1);e.context.setPagePhoto(e.context.activePage(),photoB);e.input('#signature','@post2');e.input('#background-color','#334455');e.state.text='Post B';

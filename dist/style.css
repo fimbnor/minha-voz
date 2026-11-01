@@ -424,3 +424,19 @@ details[open]>summary::after{content:'−'}
  .floating-preview-bar{right:26px}
  .small-floating-preview .floating-preview-bar{right:24px}
 }
+@media(max-width:580px),(max-width:900px) and (max-height:500px){
+ #editor.choosing-format .workspace-preview-toolbar{display:flex}
+}
+#editor .editor-navigation button[hidden]{display:none}
+@media(max-width:580px),(max-width:900px) and (max-height:500px){
+ #floating-preview-panel{isolation:isolate}
+ #floating-preview-panel::before{content:'';position:absolute;inset:0;border:2px solid #fffefa;outline:1px solid #60734f66;border-radius:5px;box-shadow:0 12px 30px #102c2238,0 3px 8px #102c2226;pointer-events:none;z-index:1}
+ #floating-preview-canvas{border-radius:5px;box-shadow:none}
+ .floating-preview-bar{gap:0;border:1px solid #b7c9aa88;border-radius:6px}
+ .floating-preview-bar button,.small-floating-preview #floating-preview-close{width:32px;height:32px;min-height:32px;padding:7px}
+ .floating-preview-bar svg{width:17px;height:17px;stroke-width:1.8}
+}
+@media(max-width:580px),(max-width:900px) and (max-height:500px){
+ #floating-preview-full{width:32px;padding:7px}
+ #floating-preview-full svg{width:17px;height:17px}
+}

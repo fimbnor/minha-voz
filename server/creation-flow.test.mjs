@@ -6,14 +6,14 @@ test('creation starts with format and advances through model, photo, customizati
  const e=await frontend();e.$('#start-creation').onclick();
  assert.equal(e.state.step,0);assert.equal(e.$('#flow-back').hidden,true);
  e.change('#format','story');
- for(const step of [1,2,3,5,6,4]){
+ for(const step of [1,2,3,6,4]){
   e.$('#flow-next').onclick();assert.equal(e.state.step,step);
   const visible=e.selectors.get('[data-panel]').filter(p=>!p.hidden);
   assert.equal(visible.length,1);assert.equal(Number(visible[0].dataset.panel),step);
  }
  assert.equal(e.$('#flow-next').hidden,true);assert.match(e.$('#export-summary').textContent,/Story/);
  assert.equal(e.$('#preview-canvas').height,1920);
- for(const step of [6,5,3,2,1,0]){e.$('#flow-back').onclick();assert.equal(e.state.step,step);}
+ for(const step of [6,3,2,1,0]){e.$('#flow-back').onclick();assert.equal(e.state.step,step);}
  assert.equal(e.state.format,'story');
 });
 
@@ -80,9 +80,9 @@ test('starting without a model replaces illustrated art with white and keeps use
 test('blank starter drops suggested copy; solid starter chooses readable text and survives project restore',async()=>{
  const e=await frontend();e.open();e.context.navigateCreation(1);
  e.$('#base-blank').onclick();assert.equal(e.state.text,'');
- e.$('#base-color-input').oninput({target:{value:'#183f35'}});
+ e.$('#background-color').oninput({target:{value:'#183f35'}});
  assert.equal(e.state.textColor,'#fffefa');assert.equal(e.state.backgroundColor,'#183f35');
- assert.equal(e.$('#base-color').attributes.get('aria-pressed'),'true');
+ assert.equal(e.$('#base-color-options').hidden,false);
  const saved=e.context.projectPage(e.context.activePage());
  await e.context.restoreProject({version:1,id:'solid',pages:[saved],format:'story',step:1,edits:[]});
  assert.equal(e.state.backgroundMode,'color');assert.equal(e.state.backgroundColor,'#183f35');
@@ -95,7 +95,7 @@ test('the original illustrated cards are selectable and the same template can re
  assert.equal(e.$('#illustrated-template-list').children.length,illustrated.length);
  e.$('#illustrated-template-list').children[0].onclick();
  assert.equal(e.state.campaign.id,illustrated[0].id);
- e.$('#base-blank').onclick();e.$('#base-model').onclick();
+ e.$('#base-blank').onclick();e.change('#background-mode','image');
  assert.equal(e.state.backgroundMode,'image');assert.equal(e.state.campaign.id,illustrated[0].id);
  assert.equal(e.$('#model-library').hidden,false);
 });
@@ -106,4 +106,41 @@ test('initial carousel bases apply to starter pages and later changes stay on th
  e.context.navigateCreation(2);e.context.navigateCreation(1);
  e.context.chooseBaseColor('#e7c746');
  assert.equal(e.state.pages[0].backgroundColor,'#e7c746');assert.equal(e.state.pages[1].backgroundColor,'#ffffff');
+});
+
+test('solid backgrounds skip models in both directions and image selection restores that step',async()=>{
+ const e=await frontend();e.open();e.change('#background-mode','color');
+ assert.equal(e.$('#base-color-options').hidden,false);assert.equal(e.$('#model-navigation-step').hidden,true);
+ assert.match(e.$('#flow-progress').textContent,/Etapa 1 de 5/);
+ for(const step of [2,3,6,4]){e.$('#flow-next').onclick();assert.equal(e.state.step,step);}
+ for(const step of [6,3,2,0]){e.$('#flow-back').onclick();assert.equal(e.state.step,step);}
+ e.change('#background-mode','image');assert.equal(e.$('#model-navigation-step').hidden,false);
+ assert.match(e.$('#flow-progress').textContent,/Etapa 1 de 6/);
+ e.$('#flow-next').onclick();assert.equal(e.state.step,1);
+});
+
+test('initial solid colors and palette choices initialize carousel pages without overwriting later page edits',async()=>{
+ const e=await frontend();e.open();e.change('#format','carousel');e.change('#background-mode','color');
+ e.$('#palette').children[3].onclick();assert(e.state.pages.every(p=>p.backgroundColor==='#b96d5a'&&p.backgroundMode==='color'));
+ e.$('#flow-next').onclick();assert.equal(e.state.step,2);
+ e.context.navigateCreation(0);e.input('#background-color','#123456');
+ assert.equal(e.state.pages[0].backgroundColor,'#123456');assert.equal(e.state.pages[1].backgroundColor,'#b96d5a');
+});
+
+test('legacy visual projects resume at format and background without losing their saved values',async()=>{
+ const e=await frontend();e.open();e.input('#headline','Texto salvo');e.change('#font-style','bold');
+ const saved=e.context.projectPage(e.context.activePage());
+ await e.context.restoreProject({version:1,id:'legacy-visual',pages:[saved],format:'story',step:5,edits:[]});
+ assert.equal(e.state.step,0);assert.equal(e.state.font,'bold');assert.equal(e.state.text,'Texto salvo');
+});
+
+test('starter background uploads initialize carousel pages, while later replacements affect only the current page',async()=>{
+ const e=await frontend();e.open();e.change('#format','carousel');e.context.navigateCreation(1);
+ const first={width:100,height:100},second={width:200,height:200};
+ e.context.loadUpload=async()=>first;
+ await e.$('#background-input').onchange({target:{files:[{}],value:'background.png'}});
+ assert(e.state.pages.every(p=>p.background===first&&p.backgroundMode==='image'));
+ e.context.navigateCreation(2);e.context.navigateCreation(1);e.context.loadUpload=async()=>second;
+ await e.$('#background-input').onchange({target:{files:[{}],value:'another.png'}});
+ assert.equal(e.state.pages[0].background,second);assert.equal(e.state.pages[1].background,first);
 });
