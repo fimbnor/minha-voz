@@ -31,3 +31,5 @@
 .topic-shortcuts [data-topic="Pets"] .topic-icon{background:#ecdfd4;color:#936043}
 .topic-shortcuts [data-topic="Hobbies"] .topic-icon{background:#e8dce2;color:#8e546e}
 @media(max-width:700px){.topic-shortcuts button{gap:9px;padding:10px 12px}}
+
+.campaign-art>img{display:block;width:100%;height:100%;object-fit:cover}
