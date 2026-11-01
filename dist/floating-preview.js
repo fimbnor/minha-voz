@@ -9,7 +9,7 @@ function floatingPreviewRatio(){const c=$('#preview-canvas');return c.height/c.w
 function fitFloatingPreview(width){
  const bounds=floatingPreviewBounds(),ratio=floatingPreviewRatio();
  const max=Math.min(bounds.width,bounds.height/ratio);
- const min=Math.min(80,max);
+ const min=Math.min(96,max);
  const fitted=Math.max(min,Math.min(max,width));
  return {width:fitted,height:fitted*ratio,min,max};
 }
