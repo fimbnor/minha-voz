@@ -31,14 +31,10 @@ async function checkAI(){
   const config=await r.json();aiReady=config.available===true;
   if(aiReady){$('#prompt-status').textContent='Gemini pronto para editar o card da prévia. Autorize o envio e descreva o que deseja mudar.';}
   else{
-   const missing=Array.isArray(config.missingConfig)?config.missingConfig:[];
-   const details=[];
-   if(missing.includes('GEMINI_API_KEY'))details.push('Cadastre GEMINI_API_KEY com sua chave');
-   if(missing.includes('AI_ENABLED'))details.push('defina AI_ENABLED como true');
-   $('#prompt-status').textContent=details.length?'Gemini indisponível: '+details.join('; ')+'. Faça isso em Environment do serviço no Render, salve e faça o deploy.':'Gemini indisponível. Confira GEMINI_API_KEY e AI_ENABLED=true no serviço do Render e faça o deploy.';
+   $('#prompt-status').textContent='A edição com IA está indisponível no momento. Você pode continuar com texto, cores e ajustes da foto.';
   }
  }catch(e){aiReady=false;$('#prompt-status').textContent=e.name==='TimeoutError'?'O servidor demorou para responder. Recarregue a página para verificar novamente.':e.message||'Não foi possível verificar a configuração do Gemini.';}
- button.disabled=!aiReady;button.textContent=aiReady?'Editar card com Gemini':'Gemini indisponível';
+ button.disabled=!aiReady;button.textContent=aiReady?'Editar este card com IA':'IA indisponível no momento';
  if(!aiReady)button.title=$('#prompt-status').textContent;
 }
 window.addEventListener('focus',()=>{if(!aiReady&&!aiRunning)checkAI();});
@@ -78,7 +74,7 @@ $('#ai-generate').onclick=async()=>{
   if(!sameAISnapshot(snapshot,aiSnapshot()))throw Error('O card mudou durante a edição. O resultado não foi aplicado. Envie um novo pedido a partir da prévia atual.');
   aiCandidate={img,snapshot};$('#ai-result-image').src=img.src;$('#ai-result').hidden=false;$('#prompt-status').textContent='Confira o card editado, incluindo textos, logotipos e rostos. Aplique somente se estiver de acordo.';
  }catch(e){$('#prompt-status').textContent=e.name==='TimeoutError'?'Tempo de espera encerrado. O provedor pode ter processado o pedido; não repetimos a chamada.':e.message||'Falha na conexão. Seu card foi mantido.';}
- finally{$('#ai-generate').removeAttribute('aria-busy');aiRunning=false;$('#ai-generate').disabled=!aiReady;$('#ai-generate').textContent='Editar card com Gemini';}
+ finally{$('#ai-generate').removeAttribute('aria-busy');aiRunning=false;$('#ai-generate').disabled=!aiReady;$('#ai-generate').textContent='Editar este card com IA';}
 };
 $('#ai-discard').onclick=clearAICandidate;
 $('#ai-accept').onclick=()=>{
