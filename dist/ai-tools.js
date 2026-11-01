@@ -33,7 +33,7 @@ $('#ai-generate').onclick=async()=>{
  aiRunning=true;$('#ai-generate').setAttribute('aria-busy','true');aiCandidate=null;$('#ai-result').hidden=true;$('#ai-generate').disabled=true;$('#ai-generate').textContent='Gerando… aguarde';$('#prompt-status').textContent='Pedido enviado. Você pode aguardar até dois minutos. Não há repetição automática.';
  const revision=photoRevision,campaign=state.campaign.id;
  try{
-  const payload={mode,prompt,consent:true,category:campaign,aspectRatio:state.format==='story'?'9:16':['square','profile'].includes(state.format)?'1:1':'4:5'};
+  const payload={mode,prompt,consent:true,category:campaign,aspectRatio:state.format==='story'?'9:16':['square','profile','instagram-profile'].includes(state.format)?'1:1':'4:5'};
   if(mode!=='background')payload.image=aiSource();
   const r=await fetch('/api/images/edit',{method:'POST',headers:{'Content-Type':'application/json','X-Request-ID':crypto.randomUUID()},body:JSON.stringify(payload),signal:AbortSignal.timeout(130000)});
   const data=await r.json();if(!r.ok)throw Error(data.error||'Não foi possível gerar.');

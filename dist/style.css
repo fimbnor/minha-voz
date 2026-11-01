@@ -8,3 +8,8 @@
 .photo-studio{border-top:1px solid var(--line);margin-top:20px;padding-top:12px}.photo-studio h3{font-size:23px}.photo-studio .secondary-button{margin-top:8px}
 .branding-controls,.ai-instructions{border-top:1px solid var(--line);padding-top:12px;margin:22px 0}.branding-controls h3,.ai-instructions h3{font-size:23px}
 #ai-result{margin-top:18px;border-top:1px solid var(--line);padding-top:10px}#ai-result-image{display:block;width:100%;max-height:350px;object-fit:contain;border-radius:7px;margin:12px 0}.ai-instructions .primary-button{margin-top:12px}.checkbox-row{line-height:1.6}
+
+/* Keep carousel navigation with the artwork on all screen sizes. */
+.preview-area>.carousel-controls{width:min(100%,360px);flex-shrink:0;justify-content:center;gap:14px;margin:16px 0 0}
+.preview-area>.carousel-controls small{font-size:10px}
+#preview-canvas.circular-profile{border-radius:50%;border:0;box-shadow:0 9px 24px #1f452326}
