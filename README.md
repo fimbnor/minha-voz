@@ -78,9 +78,11 @@ Recorte experimental de pessoas com MediaPipe Tasks Vision 0.10.21 e Selfie Segm
 
 ## Editor no celular
 
-A prévia fica fixa acima dos controles, que rolam em uma área separada. O botão **Ampliar** abre uma visão maior do card atual e **Voltar aos ajustes** retorna à mesma posição das opções. Trocar de etapa reinicia apenas a rolagem dos controles.
+O fluxo tem sete telas: Formato, Modelo, Foto, Texto, Visual, IA e Baixar. A navegação permite voltar aos ajustes sem perder o trabalho. Tratamento de foto fica em um painel recolhido, aberto quando necessário.
 
-A altura do editor acompanha a área visível do navegador com `VisualViewport`, com uma prévia menor quando há pouco espaço, inclusive ao abrir o teclado. Em telas horizontais pequenas, prévia e controles ficam lado a lado. A resolução da imagem exportada permanece a do formato selecionado.
+No celular, os controles ocupam a área de trabalho. **Ver card** abre a prévia em tela cheia e **Voltar aos ajustes** retorna à mesma tela e posição. No computador, a prévia continua ao lado dos controles. A altura do editor acompanha o `VisualViewport` ao abrir o teclado; não há prévia fixa nem barra de avanço sobre o campo de texto. A resolução exportada permanece a do formato selecionado.
+
+Validação desta revisão: Chromium em 390 × 740 e área reduzida a 390 × 370, navegação pelas sete telas, campo de IA visível, ampliação da prévia e ausência de exceções JavaScript. Teclado de aparelho real e comportamento do Safari ainda precisam de conferência. A integração com a main inclui as correções dos testes anteriores.
 
 ## Validação desta entrega
 

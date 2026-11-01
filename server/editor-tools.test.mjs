@@ -65,3 +65,10 @@ test('switching editor steps scrolls only the settings, leaving the preview in p
  const context=vm.createContext({state,$:()=>controls,$$:()=>[],matchMedia:()=>({matches:true})});vm.runInContext(code,context);
  context.setStep(3);assert.equal(state.step,3);assert.equal(controls.scrollTop,0);
 });
+
+test('mobile preview actions open the current card and return to the same task',()=>{
+ const e=editor();e.state.step=5;e.$('#editor').open=true;
+ e.$('#view-card').onclick();assert.equal(e.$('#preview-dialog').open,true);
+ e.$('#return-to-editor').onclick();assert.equal(e.state.step,5);
+ e.$('#review-card').onclick();assert.equal(e.$('#preview-dialog').open,true);
+});

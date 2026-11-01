@@ -90,3 +90,9 @@ previewHandle.addEventListener('keydown',event=>{
  event.preventDefault();previewHeight=Math.max(limits.min,Math.min(limits.max,sizes[event.key]));syncPreviewSize();
 });
 syncPreviewSize();
+
+// Each task has its own screen. On phones the artwork is available on demand.
+$('#view-card').onclick=()=>$('#expand-preview').onclick();
+$('#review-card').onclick=()=>$('#expand-preview').onclick();
+$('#editor').addEventListener('focusin',scheduleEditorViewport);
+$('#editor').addEventListener('focusout',scheduleEditorViewport);

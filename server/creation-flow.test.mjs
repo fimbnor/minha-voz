@@ -6,14 +6,14 @@ test('creation starts with format and advances through model, photo, customizati
  const e=await frontend();e.$('#start-creation').onclick();
  assert.equal(e.state.step,0);assert.equal(e.$('#flow-back').hidden,true);
  e.change('#format','story');
- for(let step=1;step<=4;step++){
+ for(const step of [1,2,3,5,6,4]){
   e.$('#flow-next').onclick();assert.equal(e.state.step,step);
   const visible=e.selectors.get('[data-panel]').filter(p=>!p.hidden);
   assert.equal(visible.length,1);assert.equal(Number(visible[0].dataset.panel),step);
  }
  assert.equal(e.$('#flow-next').hidden,true);assert.match(e.$('#export-summary').textContent,/Story/);
  assert.equal(e.$('#preview-canvas').height,1920);
- for(let step=3;step>=0;step--){e.$('#flow-back').onclick();assert.equal(e.state.step,step);}
+ for(const step of [6,5,3,2,1,0]){e.$('#flow-back').onclick();assert.equal(e.state.step,step);}
  assert.equal(e.state.format,'story');
 });
 
@@ -32,7 +32,7 @@ test('photo step exposes the AI editor without sending or accepting an edit',asy
  const e=await frontend();e.open();e.context.navigateCreation(2);
  e.input('#headline','Texto preservado');
  e.$('#photo-to-ai').onclick();
- assert.equal(e.state.step,3);assert.equal(e.$('#ai-edit-options').open,true);
+ assert.equal(e.state.step,6);assert.equal(e.$('#ai-edit-options').open,true);
  assert.equal(e.state.text,'Texto preservado');assert.equal(e.state.aiCard,null);
  assert.equal(e.$('#ai-consent').checked,false);
 });
