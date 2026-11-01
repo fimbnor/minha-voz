@@ -40,12 +40,19 @@ export function extractImage(data){
  return validImage({mimeType:out.mime_type,data:out.data});
 }
 async function jsonBody(req){let bytes=0,chunks=[];for await(const c of req){bytes+=c.length;if(bytes>MAX_BODY)throw new ApiError(413,'Arquivo muito grande.');chunks.push(c);}try{return JSON.parse(Buffer.concat(chunks));}catch{throw new ApiError(400,'Requisição inválida.');}}
-async function provider(fetchImpl,payload,key,timeoutMs){
+function safeProviderMessage(message,payload,key,password){
+ if(typeof message!=='string')return '';
+ let text=message.slice(0,16000);
+ const secrets=[key,password,...payload.input.flatMap(item=>item.type==='image'?[item.data]:item.type==='text'?[item.text,item.text.split('Detalhes do usuário: ')[1]]:[])].filter(Boolean).sort((a,b)=>b.length-a.length);
+ for(const value of secrets)text=text.split(value).join('[removido]');
+ return text.replace(/AIza[A-Za-z0-9_-]+/g,'[chave removida]').replace(/data:image\/[^;]+;base64,[A-Za-z0-9+/=]+/g,'[imagem removida]').replace(/[A-Za-z0-9+/=_-]{80,}/g,'[dados removidos]').replace(/[\r\n\t]+/g,' ').slice(0,600);
+}
+async function provider(fetchImpl,payload,key,timeoutMs,password){
  let r;try{r=await fetchImpl(ENDPOINT,{method:'POST',headers:{'x-goog-api-key':key,'Content-Type':'application/json'},body:JSON.stringify(payload),signal:AbortSignal.timeout(timeoutMs)});}catch(e){throw new ApiError(e.name==='TimeoutError'||e.name==='AbortError'?504:502,'O Google não respondeu. Nenhuma nova tentativa foi disparada automaticamente.');}
  if(!r.ok){
   let error;try{const raw=await r.text();if(raw.length<=65536)error=JSON.parse(raw).error;}catch{}
   const knownStatuses=['INVALID_ARGUMENT','FAILED_PRECONDITION','UNAUTHENTICATED','PERMISSION_DENIED','NOT_FOUND','RESOURCE_EXHAUSTED','INTERNAL','UNAVAILABLE','DEADLINE_EXCEEDED'];
-  const status=knownStatuses.includes(error?.status)?error.status:'UNKNOWN';
+  const status=knownStatuses.includes(error?.status)?error.status: ['invalid_request','permission_denied','unauthenticated','not_found','resource_exhausted','internal','unavailable'].includes(error?.code)?error.code:'UNKNOWN';
   const reasons={
    API_KEY_INVALID:'A chave da API é inválida. Confira GEMINI_API_KEY no Render.',
    API_KEY_EXPIRED:'A chave da API expirou. Atualize GEMINI_API_KEY no Render.',
@@ -61,7 +68,8 @@ async function provider(fetchImpl,payload,key,timeoutMs){
   const hints={400:'O Google rejeitou os parâmetros ou a configuração do projeto.',401:'O Google não autenticou a chave.',402:'Confira o faturamento do projeto no Google.',403:'O Google negou o acesso. Confira as restrições da chave e as permissões do projeto.',404:'O modelo configurado não está disponível para este projeto.',429:'Cota ou limite de chamadas do Gemini atingido.',500:'Falha interna no Google. Tente mais tarde.',503:'O serviço do Google está temporariamente indisponível.',504:'O Google excedeu o tempo de processamento.'};
   console.error('Gemini request failed',{httpStatus:r.status,status,reason:reason||'UNKNOWN'});
   const msg='Gemini retornou HTTP '+r.status+(status==='UNKNOWN'?'':' ('+status+')')+(reason?' ['+reason+']':'')+'. '+(reasons[reason]||hints[r.status]||'O Google recusou o pedido. Confira o serviço e o modelo configurados.');
-  throw new ApiError(r.status===429?429:502,msg);
+  const detail=safeProviderMessage(error?.message,payload,key,password);
+  throw new ApiError(r.status===429?429:502,msg+(detail?' Detalhe do Google: '+detail:''));
  }
  const raw=await r.text();if(raw.length>14*1024*1024)throw new ApiError(502,'Imagem de resposta muito grande.');let data;try{data=JSON.parse(raw);}catch{throw new ApiError(502,'Resposta inválida do Gemini.');}return extractImage(data);
 }
@@ -96,7 +104,7 @@ export function createApp({env=process.env,fetchImpl=fetch,now=Date.now,timeoutM
      const today=new Date(now()).toISOString().slice(0,10);if(today!==day){day=today;used=0;}
      if(used>=limit)throw new ApiError(429,'Limite diário desta instância atingido.');
      recent.set(id,now());used++;
-     const image=await provider(fetchImpl,providerBody(body,model),env.GEMINI_API_KEY,timeoutMs);
+     const image=await provider(fetchImpl,providerBody(body,model),env.GEMINI_API_KEY,timeoutMs,password);
      return send(res,200,{image,model});
     }finally{busy=false;}
    }

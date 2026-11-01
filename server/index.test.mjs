@@ -42,3 +42,11 @@ test('handles non-JSON provider failures without retrying or exposing content',a
  const a=await setup(t,{fetchImpl:async()=>{calls++;return new Response('<html>'+key+'</html>',{status:503});}});
  const r=await a.post();const text=await r.text();assert.equal(r.status,502);assert.match(text,/HTTP 503/);assert(!text.includes(key));assert.equal(calls,1);
 });
+
+test('shows interactions error code and useful detail while redacting credentials and photo',async t=>{
+ const logs=[];t.mock.method(console,'error',(...args)=>logs.push(args));
+ const a=await setup(t,{fetchImpl:async()=>new Response(JSON.stringify({error:{code:'invalid_request',message:'Unsupported field response_format. '+key+' '+secret+' '+body.prompt+' '+PNG}}),{status:400})});
+ const r=await a.post();const text=await r.text();
+ assert.equal(r.status,502);assert.match(text,/invalid_request/);assert.match(text,/Unsupported field response_format/);
+ for(const value of [key,secret,body.prompt,PNG]){assert(!text.includes(value));assert(!JSON.stringify(logs).includes(value));}
+});
