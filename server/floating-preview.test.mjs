@@ -58,3 +58,26 @@ test('resize fits story and keyboard viewports and keeps the selected size after
  e.$('#floating-preview-close').onclick();e.$('#floating-preview-toggle').onclick();
  const again=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));assert.equal(again.width,g.width);
 });
+
+test('size rail ranges from button-sized to viewport-sized and stays synchronized with corners and full screen',async()=>{
+ const e=await editor();e.open();e.$('#floating-preview-toggle').onclick();
+ const geometry=()=>JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
+ const original=e.$('#preview-canvas');
+ e.$('#floating-preview-size').oninput({target:{value:'0'}});assert.equal(geometry().width,80);
+ e.$('#floating-preview-size').oninput({target:{value:'100'}});assert.equal(geometry().width,390);
+ e.$('#floating-preview-size').oninput({target:{value:'50'}});assert.equal(geometry().width,235);
+ e.context.resizeFloatingPreview('sw',10000,-10000,geometry());assert.equal(e.$('#floating-preview-size').value,0);
+ e.$('#floating-preview-full').onclick();assert.equal(e.$('#floating-preview-size').value,100);
+ assert.equal(original.width,1080);assert.equal(original.height,1350);
+});
+
+test('vertical opacity and size rails change only the preview and adapt to keyboard bounds',async()=>{
+ const e=await editor();e.open();e.$('#floating-preview-toggle').onclick();const page=e.context.activePage();
+ e.$('#floating-preview-opacity').oninput({target:{value:'20'}});
+ assert.equal(e.$('#floating-preview-canvas').style.opacity,.2);
+ assert.equal(e.$('#floating-preview-opacity').attributes.get('aria-valuetext'),'20%');
+ e.$('.editor-shell').getBoundingClientRect=()=>({width:390,height:370});
+ e.$('#floating-preview-size').oninput({target:{value:'100'}});
+ const g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
+ assert.equal(g.height,370);assert.equal(e.context.activePage(),page);assert.equal(page.backgroundMode,'image');
+});
