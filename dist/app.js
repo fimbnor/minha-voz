@@ -15,6 +15,11 @@ Object.assign(icons,{
 });
 function icon(name){return `<svg viewBox="0 0 24 24" aria-hidden="true">${icons[name]||icons.spark}</svg>`;}function hydrate(){ $$('[data-icon]').forEach(e=>e.innerHTML=icon(e.dataset.icon)); }
 const campaigns=window.MINHA_VOZ_CATALOG.templates.map((t,i)=>({id:t.id,name:t.nome,area:t.universo,category:t.categoria,scene:'sun',color:i%6,symbol:'✳',tag:t.categoria,text:t.frase_sugerida,alt:t.frases_alternativas[0],third:t.frases_alternativas[1],backgroundUrl:'/catalogo-minha-voz/'+t.arquivo_fundo,layout:t.layout,textColor:t.cor_texto,accentColor:t.cor_destaque,imageStyle:templateStyle(t.id)}));
+campaigns.push(
+ {id:'consciencia-negra-voz',name:'Consciência Negra',area:'Meu Mundo',category:'Causas',scene:'sun',color:3,symbol:'✳',tag:'Consciência Negra',text:'Consciência Negra. Respeito todos os dias.',alt:'Por igualdade e respeito.',third:'Nossa história importa.',backgroundUrl:'/assets/causas/consciencia-negra.webp',textColor:'#fff3dd',accentColor:'#e7b969',imageStyle:'banner'},
+ {id:'proteger-a-floresta',name:'Proteger a floresta',area:'Meu Mundo',category:'Meio Ambiente',scene:'forest',color:0,symbol:'✳',tag:'Meio Ambiente',text:'Nossa voz pela floresta.',alt:'Proteger a natureza é cuidar da vida.',third:'A floresta importa.',backgroundUrl:'/assets/causas/protecao-ambiental.webp',textColor:'#ffffff',accentColor:'#d9e8a7',imageStyle:'banner'},
+ {id:'direitos-das-mulheres',name:'Direitos das mulheres',area:'Meu Mundo',category:'Mulheres',scene:'sun',color:3,symbol:'✳',tag:'Mulheres',text:'Direitos para todas.',alt:'Respeito e igualdade.',third:'Juntas por direitos.',backgroundUrl:'/assets/causas/direitos-mulheres.webp',textColor:'#51304f',accentColor:'#8c5f89',imageStyle:'banner'}
+);
 const backgroundCache=new Map();let heroRenderer=null,heroBackgroundUrl=null;
 function catalogBackground(c){
  if(c.nativeScene)return null;
@@ -198,8 +203,11 @@ function initHero(){
  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
  // One model per category, taken from the current catalog rather than old IDs.
  const slides=[...new Map(campaigns.map(c=>[c.category,c])).values()];
+// Feature the new cause models while retaining every original model in the catalog.
+ const featuredCauseIds={'Causas':'consciencia-negra-voz','Meio Ambiente':'proteger-a-floresta','Mulheres':'direitos-das-mulheres'};
+ slides.forEach((item,i)=>{const id=featuredCauseIds[item.category];if(id)slides[i]=campaigns.find(c=>c.id===id)||item;});
  let index=Math.max(0,slides.findIndex(c=>c.category==='Amor')),current=slides[index];
- const examples={'Amor':'casal','Mulheres':'mulher','Conquistas':'homem','Estilo de Vida':'loira','Cidadania':'homem-negro','Bem-estar':'ruiva','Hobbies':'nerd'};
+ const examples={'Amor':'casal','Mulheres':'mulher-luta','Causas':'mulher-luta','Meio Ambiente':'homem-luta','Conquistas':'homem','Estilo de Vida':'loira','Cidadania':'homem-negro','Bem-estar':'ruiva','Hobbies':'nerd'};
  const exampleImages={};
  Object.entries(examples).forEach(([category,name])=>{
   const img=new Image();exampleImages[category]=img;
