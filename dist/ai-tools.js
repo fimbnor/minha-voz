@@ -1,6 +1,26 @@
 'use strict';
 let aiReady=false,aiRunning=false,aiCandidate=null,aiPrevious=null;
-async function checkAI(){try{const r=await fetch('/api/config',{cache:'no-store'});if(!r.ok)throw Error();const config=await r.json();aiReady=config.available===true;$('#prompt-status').textContent=aiReady?'Gemini conectado ao servidor. Uma geração por toque; confira o resultado antes de usar.':'Configure GEMINI_API_KEY e AI_ENABLED no servidor para ativar a geração.';}catch{$('#prompt-status').textContent='Geração disponível na versão com servidor. Esta prévia estática permite editar e baixar as instruções.';}$('#ai-generate').disabled=!aiReady;}
+async function checkAI(){
+ if(aiRunning)return;
+ const button=$('#ai-generate');
+ button.disabled=true;button.textContent='Verificando Gemini…';button.removeAttribute('title');
+ try{
+  const r=await fetch('/api/config',{cache:'no-store',signal:AbortSignal.timeout(15000)});
+  if(!r.ok)throw Error(r.status===401?'Sua sessão expirou. Recarregue a página e entre novamente.':'Não foi possível verificar o Gemini. Recarregue a página para tentar novamente.');
+  const config=await r.json();aiReady=config.available===true;
+  if(aiReady){$('#prompt-status').textContent='Geração habilitada no servidor. Autorize o envio ao Google e confira o resultado antes de usar.';}
+  else{
+   const missing=Array.isArray(config.missingConfig)?config.missingConfig:[];
+   const details=[];
+   if(missing.includes('GEMINI_API_KEY'))details.push('Cadastre GEMINI_API_KEY com sua chave');
+   if(missing.includes('AI_ENABLED'))details.push('defina AI_ENABLED como true');
+   $('#prompt-status').textContent=details.length?'Gemini indisponível: '+details.join('; ')+'. Faça isso em Environment do serviço no Render, salve e faça o deploy.':'Gemini indisponível. Confira GEMINI_API_KEY e AI_ENABLED=true no serviço do Render e faça o deploy.';
+  }
+ }catch(e){aiReady=false;$('#prompt-status').textContent=e.name==='TimeoutError'?'O servidor demorou para responder. Recarregue a página para verificar novamente.':e.message||'Não foi possível verificar a configuração do Gemini.';}
+ button.disabled=!aiReady;button.textContent=aiReady?'Gerar com Gemini':'Gemini indisponível';
+ if(!aiReady)button.title=$('#prompt-status').textContent;
+}
+window.addEventListener('focus',()=>{if(!aiReady&&!aiRunning)checkAI();});
 function aiSource(){const c=photoCanvas(originalPhoto,1600),url=c.toDataURL('image/jpeg',.9);return {mimeType:'image/jpeg',data:url.split(',')[1]};}
 $('#ai-generate').onclick=async()=>{
  if(!aiReady||aiRunning)return;
@@ -9,7 +29,7 @@ $('#ai-generate').onclick=async()=>{
  if(!$('#ai-consent').checked){toast('Autorize o envio ao Google para continuar.');return;}
  if(mode!=='background'&&!originalPhoto){toast('Envie uma foto no passo Sua foto.');return;}
  if(mode!=='background'&&state.campaign.id==='bebe'){toast('Em Meu Bebê, escolha Criar cenário para preservar a foto original.');return;}
- aiRunning=true;aiCandidate=null;$('#ai-result').hidden=true;$('#ai-generate').disabled=true;$('#ai-generate').textContent='Gerando… aguarde';$('#prompt-status').textContent='Pedido enviado. Você pode aguardar até dois minutos. Não há repetição automática.';
+ aiRunning=true;$('#ai-generate').setAttribute('aria-busy','true');aiCandidate=null;$('#ai-result').hidden=true;$('#ai-generate').disabled=true;$('#ai-generate').textContent='Gerando… aguarde';$('#prompt-status').textContent='Pedido enviado. Você pode aguardar até dois minutos. Não há repetição automática.';
  const revision=photoRevision,campaign=state.campaign.id;
  try{
   const payload={mode,prompt,consent:true,category:campaign,aspectRatio:state.format==='story'?'9:16':['square','profile'].includes(state.format)?'1:1':'4:5'};
@@ -20,7 +40,7 @@ $('#ai-generate').onclick=async()=>{
   const img=new Image();img.src=`data:${data.image.mimeType};base64,${data.image.data}`;await img.decode();
   aiCandidate={img,mode,revision,campaign};$('#ai-result-image').src=img.src;$('#ai-result').hidden=false;$('#prompt-status').textContent='Imagem recebida. Confira rostos, mãos e detalhes. Aplique somente se estiver de acordo.';
  }catch(e){$('#prompt-status').textContent=e.name==='TimeoutError'?'Tempo de espera encerrado. O provedor pode ter processado o pedido; não repetimos a chamada.':e.message||'Falha na conexão. A foto original permanece disponível.';}
- finally{aiRunning=false;$('#ai-generate').disabled=!aiReady;$('#ai-generate').textContent='Gerar com Gemini';}
+ finally{$('#ai-generate').removeAttribute('aria-busy');aiRunning=false;$('#ai-generate').disabled=!aiReady;$('#ai-generate').textContent='Gerar com Gemini';}
 };
 $('#ai-discard').onclick=()=>{aiCandidate=null;$('#ai-result').hidden=true;$('#ai-result-image').removeAttribute('src');};
 $('#ai-accept').onclick=()=>{

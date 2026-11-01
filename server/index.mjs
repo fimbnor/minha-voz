@@ -60,7 +60,7 @@ export function createApp({env=process.env,fetchImpl=fetch,now=Date.now,timeoutM
    if(loginFailures>=30)throw new ApiError(429,'Muitas tentativas de acesso. Aguarde um minuto.');
    const expected='Basic '+Buffer.from(user+':'+password).toString('base64');
    if(!equal(req.headers.authorization||'',expected)){loginFailures++;res.setHeader('WWW-Authenticate','Basic realm="Minha Voz - testes privados", charset="UTF-8"');return send(res,401,{error:'Entre com o usuário e a senha de teste.'});}
-   if(url.pathname==='/api/config'&&req.method==='GET')return send(res,200,{available:!!env.GEMINI_API_KEY&&env.AI_ENABLED==='true',model});
+   if(url.pathname==='/api/config'&&req.method==='GET'){const missingConfig=[];if(!env.GEMINI_API_KEY)missingConfig.push('GEMINI_API_KEY');if(env.AI_ENABLED!=='true')missingConfig.push('AI_ENABLED');return send(res,200,{available:missingConfig.length===0,model,missingConfig});}
    if(url.pathname==='/api/images/edit'){
     if(req.method!=='POST'){res.setHeader('Allow','POST');throw new ApiError(405,'Use POST.');}
     const origin=env.PUBLIC_ORIGIN||`http://${req.headers.host}`;
