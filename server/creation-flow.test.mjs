@@ -144,3 +144,14 @@ test('starter background uploads initialize carousel pages, while later replacem
  await e.$('#background-input').onchange({target:{files:[{}],value:'another.png'}});
  assert.equal(e.state.pages[0].background,second);assert.equal(e.state.pages[1].background,first);
 });
+
+test('home solid-color entry starts without suggested copy and skips the model screen',async()=>{
+ const e=await frontend();e.$('#start-solid').onclick();
+ assert.equal(e.state.backgroundMode,'color');assert.equal(e.state.text,'');assert.equal(e.state.step,0);
+ assert.equal(e.$('#base-color-options').hidden,false);
+ e.change('#format','story');e.input('#background-color','#e7c746');
+ e.$('#flow-next').onclick();assert.equal(e.state.step,2);assert.equal(e.state.backgroundColor,'#e7c746');
+ e.$('#flow-back').onclick();assert.equal(e.state.backgroundMode,'color');
+ e.$('#start-creation').onclick();assert.equal(e.state.backgroundMode,'image');
+ e.$('#flow-next').onclick();assert.equal(e.state.step,1);
+});

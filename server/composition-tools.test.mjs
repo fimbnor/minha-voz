@@ -116,3 +116,12 @@ test('export waits for the actual selected background and refuses a post change 
  e.finishBackground(e.state.campaign);await pending;assert.equal(finished,true);
  e.open(2);const next=e.context.canvasBlob();await new Promise(r=>setImmediate(r));const previous=e.state.campaign;e.context.openEditor(e.campaigns[3]);e.finishBackground(previous);await assert.rejects(next,/post mudou/);
 });
+
+test('a personal photo composes over the selected model even in the photo format',async()=>{
+ const e=await frontend();e.open(0);e.finishBackground(e.state.campaign);
+ const photo={width:500,height:500};e.change('#format','photo');e.context.setPagePhoto(e.context.activePage(),photo);e.context.renderPreview();
+ const photoDraw=e.drawCalls().find(c=>c.op==='drawImage'&&c.args[0]===photo);
+ assert(photoDraw);assert(photoDraw.args.at(-2)<e.$('#preview-canvas').width);
+ assert(e.drawCalls().some(c=>c.op==='drawImage'&&c.args[0]!==photo));
+ assert.equal(e.state.backgroundMode,'image');
+});

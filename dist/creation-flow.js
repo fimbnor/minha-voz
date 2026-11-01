@@ -1,9 +1,11 @@
 'use strict';
 // Preserve panel IDs so projects saved with the original editor still resume correctly.
-const CREATION_LABELS={0:'Formato e fundo',1:'Fundo',2:'Foto e logotipo',3:'Texto e assinatura',6:'Edição com IA',4:'Baixar'};
+const CREATION_LABELS={0:'Formato',1:'Fundo',2:'Foto e logotipo',3:'Texto e assinatura',6:'Edição com IA',4:'Baixar'};
 function creationOrder(){return state.backgroundMode==='color'?[0,2,3,6,4]:[0,1,2,3,6,4];}
 function syncFlowUI(){
  const order=creationOrder(),step=Number(state.step),position=order.indexOf(step);
+ $('#format-step-title').textContent=state.backgroundMode==='color'?'Formato e cor':'Escolha o formato';
+ $('#format-intro').textContent=state.backgroundMode==='color'?'Escolha o formato e a cor do seu card.':'Escolha onde vai usar seu card.';
  $('#flow-progress').textContent=`Etapa ${position+1} de ${order.length} · ${CREATION_LABELS[step]}`;
  if(step===6)$('#ai-edit-options').open=true;
  $('#flow-back').hidden=step===0;
@@ -25,6 +27,7 @@ function navigateCreation(step){
 $('#flow-back').onclick=()=>{const order=creationOrder();navigateCreation(order[Math.max(0,order.indexOf(state.step)-1)]);};
 $('#flow-next').onclick=()=>{const order=creationOrder();navigateCreation(order[Math.min(order.length-1,order.indexOf(state.step)+1)]);};
 $('#start-creation').onclick=()=>openEditor(campaigns.find(c=>c.id==='amor')||campaigns[0]);
+$('#start-solid').onclick=()=>openEditor(campaigns.find(c=>c.id==='amor')||campaigns[0],{backgroundMode:'color'});
 $('#photo-to-ai').onclick=()=>{navigateCreation(6);$('#ai-edit-options').open=true;$('#ai-prompt').focus({preventScroll:true});};
 $('#skip-photo').onclick=()=>navigateCreation(3);
 syncFlowUI();
@@ -61,3 +64,13 @@ function renderBaseOptions(){
 }
 $('#base-blank').onclick=()=>chooseBaseColor('#ffffff',{blank:true});
 renderBaseOptions();
+
+// A layered thumbnail shows the chosen base underneath the user's photo.
+function syncPhotoCompositionPreview(){
+ const base=$('#photo-base-thumb'),ratio=$('#preview-canvas').height/$('#preview-canvas').width;
+ base.height=Math.round(base.width*ratio);
+ drawCardBackground(base.getContext('2d'),base.width,base.height,state.campaign,state);
+ const photo=$('#photo-layer-thumb');photo.hidden=!state.photo;$('#photo-layer-camera').hidden=!!state.photo;
+ if(state.photo){const ctx=photo.getContext('2d');ctx.clearRect(0,0,photo.width,photo.height);drawCover(ctx,state.photo,0,0,photo.width,photo.height);}
+}
+syncPhotoCompositionPreview();

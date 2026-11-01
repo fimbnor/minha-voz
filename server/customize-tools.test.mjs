@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {frontend} from './frontend-harness.mjs';
 
-test('format and background tiles update editor state and restore selection on reopen',async()=>{
- const e=await frontend();e.open();const groups=e.selectors.get('[data-choice-group]');assert.equal(groups.length,2);
- const [formats,backgrounds]=groups.map(g=>g.querySelectorAll());assert.equal(formats.length,6);assert.equal(backgrounds.length,2);
+test('format tiles retain selection and home selects the background path',async()=>{
+ const e=await frontend();e.open();const groups=e.selectors.get('[data-choice-group]');assert.equal(groups.length,1);
+ const [formats]=groups.map(g=>g.querySelectorAll());assert.equal(formats.length,6);
  formats.find(b=>b.dataset.choice==='story').onclick();assert.equal(e.state.format,'story');assert.equal(e.$('#preview-canvas').height,1920);
  assert.equal(formats.find(b=>b.dataset.choice==='story').attributes.get('aria-checked'),'true');
- backgrounds[1].onclick();assert.equal(e.state.backgroundMode,'color');
- e.open();assert.equal(formats[0].attributes.get('aria-checked'),'true');assert.equal(backgrounds[0].attributes.get('aria-checked'),'true');
+ e.$('#start-solid').onclick();assert.equal(e.state.backgroundMode,'color');
+ e.open();assert.equal(formats[0].attributes.get('aria-checked'),'true');assert.equal(e.state.backgroundMode,'image');
  let prevented=false;formats[0].events.get('keydown')({key:'End',preventDefault(){prevented=true;}});assert(prevented);assert.equal(e.state.format,'carousel');
 });
 test('all seven embedded fonts are selectable for rectangular and circular cards',async()=>{
