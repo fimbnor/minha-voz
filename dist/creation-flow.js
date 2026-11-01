@@ -27,7 +27,7 @@ function navigateCreation(step){
 $('#flow-back').onclick=()=>{const order=creationOrder();navigateCreation(order[Math.max(0,order.indexOf(state.step)-1)]);};
 $('#flow-next').onclick=()=>{const order=creationOrder();navigateCreation(order[Math.min(order.length-1,order.indexOf(state.step)+1)]);};
 $('#start-creation').onclick=()=>openEditor(campaigns.find(c=>c.id==='amor')||campaigns[0]);
-$('#start-solid').onclick=()=>openEditor(campaigns.find(c=>c.id==='amor')||campaigns[0],{backgroundMode:'color'});
+$('#start-solid').onclick=()=>{filter='solid';onlySaved=false;$$('[data-filter]').forEach(b=>{b.classList.remove('active');b.setAttribute('aria-pressed','false');});$$('[data-nav]').forEach(b=>{b.classList.toggle('active',b.dataset.nav==='home');});renderCatalog();};
 $('#skip-photo').onclick=()=>navigateCreation(3);
 syncFlowUI();
 
