@@ -1,16 +1,18 @@
+import vm from 'node:vm';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {frontend} from './frontend-harness.mjs';
 async function editor(){
  const e=await frontend();
  e.$('.editor-shell').getBoundingClientRect=()=>({left:0,top:0,width:390,height:740});
+ e.$('#floating-preview-toggle').getBoundingClientRect=()=>({left:280,right:370,top:120,bottom:160,width:90,height:40});
  const widget=e.$('#floating-preview');
  widget.getBoundingClientRect=()=>({left:parseFloat(widget.style.left)||138,top:parseFloat(widget.style.top)||200,width:240,height:350});
  return e;
 }
 test('floating copies keep the current export aspect ratio and update with manual edits',async()=>{
  const e=await editor();e.open();e.change('#format','story');
- assert.equal(e.$('#floating-preview-canvas').height,427);
+ assert.equal(e.$('#floating-preview-canvas').height,1387);
  assert.equal(e.$('#floating-preview-thumb').height,100);
  const canvas=e.$('#floating-preview-canvas'),count=canvas.calls.filter(c=>c.op==='drawImage').length;
  e.input('#headline','Uma nova mensagem');
@@ -28,9 +30,31 @@ test('floating controls open, adjust image opacity only, and collapse without ch
  assert.equal(e.$('#floating-preview-toggle').hidden,false);assert.equal(e.context.activePage(),page);
 });
 test('moving the preview keeps its controls within the editor and resets on close',async()=>{
- const e=await editor();e.open();e.context.setFloatingPreviewPosition(999,-50);
- assert.equal(e.$('#floating-preview').style.left,'142px');assert.equal(e.$('#floating-preview').style.top,'8px');
+ const e=await editor();e.open();e.$('#floating-preview-toggle').onclick();e.context.setFloatingPreviewPosition(999,-50);
+ assert.equal(e.$('#floating-preview').style.left,'170px');assert.equal(e.$('#floating-preview').style.top,'0px');
  e.$('#floating-preview-toggle').onclick();e.$('#editor').close();
  assert.equal(e.$('#floating-preview-panel').hidden,true);
  assert.equal(e.$('#floating-preview-toggle').attributes.get('aria-expanded'),'false');
+});
+
+test('lower-left resize shrinks upward to button size and grows to screen bounds',async()=>{
+ const e=await editor();e.open();e.$('#floating-preview-toggle').onclick();
+ const start=()=>JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
+ const before=start();e.context.resizeFloatingPreview('sw',0,-100,before);
+ assert(start().width<before.width);assert.equal(start().top,before.top);
+ assert.equal(start().left+start().width,before.left+before.width);
+ e.context.resizeFloatingPreview('sw',10000,-10000,before);assert.equal(start().width,80);
+ e.context.resizeFloatingPreview('sw',-10000,10000,before);
+ assert.equal(start().width,390);assert.equal(start().height,487.5);assert(start().left>=0);assert(start().top>=0);
+ assert.equal(e.$('#preview-canvas').width,1080);assert.equal(e.$('#preview-canvas').height,1350);
+});
+test('resize fits story and keyboard viewports and keeps the selected size after reopening',async()=>{
+ const e=await editor();e.open();e.change('#format','story');e.$('#floating-preview-toggle').onclick();
+ e.$('#floating-preview-full').onclick();
+ let g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
+ assert(g.width<=390&&g.height<=740);
+ e.$('.editor-shell').getBoundingClientRect=()=>({left:0,top:0,width:390,height:370});e.context.clampFloatingPreview();
+ g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));assert(g.height<=370);
+ e.$('#floating-preview-close').onclick();e.$('#floating-preview-toggle').onclick();
+ const again=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));assert.equal(again.width,g.width);
 });
