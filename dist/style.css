@@ -389,14 +389,11 @@ details[open]>summary::after{content:'−'}
  #editor .editor-header-actions button{white-space:nowrap}
  #editor .editor-header h2{font-size:20px}
 }
-/* Mobile preview opens from the editing box and resizes over the workspace. */
-.floating-preview,.workspace-preview-toolbar{display:none}
+/* The live miniature is always available on mobile and expands over the workspace. */
+.floating-preview{display:none}
 @media(max-width:580px),(max-width:900px) and (max-height:500px){
  #editor .editor-shell{position:relative}
  #editor .preview-area{display:none}
- .workspace-preview-toolbar{display:flex;justify-content:flex-end;position:sticky;top:-18px;z-index:4;margin:-6px 0 12px;padding:6px 0;background:#fafbf6}
- #editor.choosing-format .workspace-preview-toolbar{display:none}
- #floating-preview-toggle{display:flex;min-height:40px;padding:9px 15px;border:1px solid #b7c9aa;border-radius:8px;background:#fafbf6;color:#213f33;font-size:13px}
  #editor .floating-preview{display:block;position:absolute;z-index:8;pointer-events:none}
  #floating-preview-panel[hidden]{display:none}
  #floating-preview-panel{position:relative;display:block;width:var(--floating-width,240px);height:var(--floating-height,300px);pointer-events:none}
@@ -425,7 +422,6 @@ details[open]>summary::after{content:'−'}
  .small-floating-preview .floating-preview-bar{right:24px}
 }
 @media(max-width:580px),(max-width:900px) and (max-height:500px){
- #editor.choosing-format .workspace-preview-toolbar{display:flex}
 }
 #editor .editor-navigation button[hidden]{display:none}
 @media(max-width:580px),(max-width:900px) and (max-height:500px){
