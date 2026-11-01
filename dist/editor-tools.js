@@ -3,6 +3,7 @@ const mobileEditor=matchMedia('(max-width:580px)');
 const landscapeEditor=matchMedia('(max-width:900px) and (max-height:500px)');
 function syncEditorViewport(){
  const editor=$('#editor');
+ syncPreviewSize();
  if(!editor.open||!(mobileEditor.matches||landscapeEditor.matches)){
   editor.style.removeProperty('--editor-height');editor.style.removeProperty('--editor-top');editor.classList.remove('compact-editor');return;
  }
@@ -39,3 +40,18 @@ $('#expand-preview').onclick=()=>{
 };
 $('#close-preview').onclick=()=>$('#preview-dialog').close();
 $('#return-to-editor').onclick=()=>$('#preview-dialog').close();
+
+
+// Resize only the displayed canvas; export always keeps the selected resolution.
+const previewSize=$('#preview-size');
+previewSize.value=mobileEditor.matches||landscapeEditor.matches?25:55;
+function syncPreviewSize(){
+ const height=Math.round(window.visualViewport?.height||window.innerHeight);
+ const mobile=mobileEditor.matches||landscapeEditor.matches;
+ const requested=height*Number($('#preview-size').value||25)/100;
+ const pixels=Math.max(56,Math.round(Math.min(requested,height-(mobile?260:190))));
+ $('#preview-canvas').style.setProperty('--preview-size',pixels+'px');
+ $('#preview-size-value').textContent=pixels+' px';
+}
+previewSize.oninput=syncPreviewSize;
+syncPreviewSize();
