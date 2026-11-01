@@ -26,7 +26,8 @@ test('floating controls open, adjust image opacity only, and collapse without ch
  assert.equal(e.$('#floating-preview-canvas').style.opacity,.35);
  assert.equal(e.$('#floating-preview-opacity-value').textContent,'35%');
  assert.equal(e.$('#floating-preview-panel').style.opacity,undefined);
- e.$('#floating-preview-close').onclick();assert.equal(e.$('#floating-preview-panel').hidden,true);
+ e.$('#floating-preview-close').onclick();assert.equal(e.$('#floating-preview-panel').hidden,false);
+ assert(e.$('#floating-preview').classes.has('small-floating-preview'));
  assert.equal(e.$('#floating-preview-toggle').hidden,false);assert.equal(e.context.activePage(),page);
 });
 test('moving the preview keeps its controls within the editor and resets on close',async()=>{
@@ -80,4 +81,18 @@ test('vertical opacity and size rails change only the preview and adapt to keybo
  e.$('#floating-preview-size').oninput({target:{value:'100'}});
  const g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
  assert.equal(g.height,370);assert.equal(e.context.activePage(),page);assert.equal(page.backgroundMode,'image');
+});
+
+test('collapsed card can move and expand at its new position without losing opacity or chosen size',async()=>{
+ const e=await editor();e.open();e.$('#floating-preview-toggle').onclick();
+ const geometry=()=>JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
+ const width=geometry().width;
+ e.$('#floating-preview-opacity').oninput({target:{value:'55'}});
+ e.$('#floating-preview-close').onclick();assert.equal(geometry().width,80);
+ e.context.setFloatingPreviewPosition(240,320);
+ const miniature=geometry();assert.equal(miniature.left,240);assert.equal(miniature.top,320);
+ e.$('#floating-preview-restore').onclick();
+ assert.equal(geometry().width,width);assert.equal(geometry().top,320);
+ assert.equal(geometry().left+geometry().width,miniature.left+miniature.width);
+ assert.equal(e.$('#floating-preview-canvas').style.opacity,.55);
 });
