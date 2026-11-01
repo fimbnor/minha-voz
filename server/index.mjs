@@ -79,7 +79,7 @@ export function createApp({env=process.env,fetchImpl=fetch,now=Date.now,timeoutM
  let firebaseConfig=null, firebaseAuth=null;
  if(firebaseMode){
   try{firebaseConfig=JSON.parse(env.FIREBASE_WEB_CONFIG||'');}catch{throw Error('Configure FIREBASE_WEB_CONFIG com o JSON do aplicativo web Firebase.');}
-  if(!firebaseConfig.apiKey||!firebaseConfig.authDomain||!firebaseConfig.projectId||!firebaseConfig.appId||!firebaseConfig.storageBucket)throw Error('FIREBASE_WEB_CONFIG incompleto.');
+  if(!firebaseConfig.apiKey||!firebaseConfig.authDomain||!firebaseConfig.projectId||!firebaseConfig.appId)throw Error('FIREBASE_WEB_CONFIG incompleto.');
   firebaseConfig=Object.fromEntries(['apiKey','authDomain','projectId','appId','storageBucket','messagingSenderId','measurementId'].filter(k=>typeof firebaseConfig[k]==='string').map(k=>[k,firebaseConfig[k]]));
   const appName='minha-voz-'+firebaseConfig.projectId;
   const app=getApps().find(a=>a.name===appName)||initializeFirebase({projectId:firebaseConfig.projectId},appName);firebaseAuth=getAuth(app);

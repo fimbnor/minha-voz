@@ -96,13 +96,12 @@ Não foi usada uma chave real, não houve chamada real ao Gemini e não houve te
 - https://render.com/docs/web-services
 - https://render.com/docs/configure-environment-variables
 
-## Integração Firebase (em desenvolvimento)
+## Firebase Authentication e projetos locais
 
-Esta integração deve ser validada em um projeto de teste antes de ser ativada em produção. Sem `FIREBASE_AUTH_ENABLED=true`, a proteção atual de testes continua em uso. Com a integração habilitada, a aplicação fica acessível sem a senha compartilhada e a edição com Gemini exige um token Firebase válido.
+A integração de login está preparada, mas deve ser testada antes de ser ativada em produção. Sem `FIREBASE_AUTH_ENABLED=true`, o acesso usa a senha de testes existente. Com ela habilitada, o Gemini exige um token válido do Firebase Authentication.
 
-1. Crie um aplicativo **Web** no projeto Firebase e obtenha seu objeto de configuração público. Ative Authentication com Google e e-mail/senha, adicione o domínio do Render e `localhost` aos domínios autorizados e crie o bucket do Firebase Storage (plano Blaze). Configure o CORS do bucket para a origem HTTPS real da aplicação; `getBytes()` usa leitura pelo navegador.
-2. Configure no Render `FIREBASE_AUTH_ENABLED=true` e `FIREBASE_WEB_CONFIG` como JSON em uma única linha com `apiKey`, `authDomain`, `projectId`, `appId`, `storageBucket` e, se disponível, `messagingSenderId`. Estes são dados de configuração web; nunca inclua chave privada de conta de serviço. Mantenha `PUBLIC_ORIGIN`, `GEMINI_API_KEY` e demais variáveis existentes no servidor.
-3. Revise e teste as regras de `firestore.rules` e `storage.rules`. Publique-as no projeto correto antes de ativar o recurso. Elas isolam projetos e arquivos pelo UID, mas ainda requerem validação independente.
-4. Execute `npm ci`, `npm run build` e os testes. Para testar regras localmente, use `npx firebase-tools emulators:exec --project demo-minha-voz --only firestore,storage 'node tests/firebase-rules.mjs'`. Depois, verifique login, recuperação de senha, e o acesso cruzado com duas contas reais de teste.
+1. No Firebase, ative login Google e e-mail/senha e adicione o domínio do Render aos domínios autorizados.
+2. No Render, configure `FIREBASE_AUTH_ENABLED=true` e `FIREBASE_WEB_CONFIG` com o objeto JSON da configuração web, em uma linha. Mantenha `PUBLIC_ORIGIN`, `GEMINI_API_KEY` e as demais variáveis existentes. Não inclua chaves privadas no JSON web.
+3. Execute `npm ci`, `npm run build` e os testes. Teste cadastro, login, recuperação de senha e a separação de projetos entre duas contas no mesmo aparelho antes de publicar.
 
-Os projetos existentes no navegador continuam locais. Abra um rascunho local e escolha **Salvar projeto** enquanto estiver conectado para gravar uma cópia na conta. As imagens do projeto são armazenadas em arquivos JSON privados no Storage, com limite de 40 MB por projeto; a lista e os metadados ficam no Firestore. Excluir o projeto remove o registro e tenta apagar o arquivo, mas falhas na exclusão podem deixar arquivos órfãos e devem ser tratadas por rotina futura de limpeza. A edição no Gemini continua submetida ao limite diário compartilhado da instância.
+Os projetos, fotos e edições são guardados no IndexedDB do navegador. Projetos de uma conta são exibidos quando ela está ativa no mesmo navegador; projetos antigos sem conta continuam visíveis no aparelho e, ao salvá-los conectado, passam a ser associados à conta. Essa associação é uma separação de interface, não uma proteção contra quem tem acesso ao dispositivo ou aos dados do navegador. Limpar os dados do navegador, trocar de navegador ou aparelho pode tornar os projetos indisponíveis; eles não são sincronizados nem possuem backup na nuvem. Exportar o card baixa apenas a imagem final.
