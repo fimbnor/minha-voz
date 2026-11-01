@@ -9,21 +9,18 @@ function drawInstagramProfile(canvas,c,opts){
  const ctx=canvas.getContext('2d'),w=canvas.width,h=canvas.height,p=palettes[opts.palette??c.color],r=Math.min(w,h)*.49;
  ctx.clearRect(0,0,w,h);ctx.save();ctx.beginPath();ctx.arc(w/2,h/2,r,0,Math.PI*2);ctx.clip();
  scene(ctx,w,h,c,p);
- if(opts.aiArtwork)drawCover(ctx,opts.aiArtwork,0,0,w,h);
- else{
-  if(opts.background)drawCover(ctx,opts.background,0,0,w,h);
-  if(opts.photo){
-   const zoom=(opts.scale||100)/100,dx=w*(opts.x||0)/200,dy=h*(opts.y||0)/200;
-   ctx.save();if(opts.gray)ctx.filter='grayscale(1)';
-   if(opts.cutout){
-    const fit=Math.min(w*.76/opts.photo.width,h*.72/opts.photo.height)*zoom;
-    ctx.drawImage(opts.photo,(w-opts.photo.width*fit)/2+dx,h*.49-opts.photo.height*fit/2+dy,opts.photo.width*fit,opts.photo.height*fit);
-   }else{
-    ctx.beginPath();ctx.arc(w*.5,h*.45,w*.305,0,Math.PI*2);ctx.clip();
-    drawCover(ctx,opts.photo,w*.195+dx-w*.61*(zoom-1)/2,h*.145+dy-h*.61*(zoom-1)/2,w*.61*zoom,h*.61*zoom);
-   }
-   ctx.restore();
+ if(opts.background)drawCover(ctx,opts.background,0,0,w,h);
+ if(opts.photo){
+  const zoom=(opts.scale||100)/100,dx=w*(opts.x||0)/200,dy=h*(opts.y||0)/200;
+  ctx.save();if(opts.gray)ctx.filter='grayscale(1)';
+  if(opts.cutout){
+   const fit=Math.min(w*.76/opts.photo.width,h*.72/opts.photo.height)*zoom;
+   ctx.drawImage(opts.photo,(w-opts.photo.width*fit)/2+dx,h*.49-opts.photo.height*fit/2+dy,opts.photo.width*fit,opts.photo.height*fit);
+  }else{
+   ctx.beginPath();ctx.arc(w*.5,h*.45,w*.305,0,Math.PI*2);ctx.clip();
+   drawCover(ctx,opts.photo,w*.195+dx-w*.61*(zoom-1)/2,h*.145+dy-h*.61*(zoom-1)/2,w*.61*zoom,h*.61*zoom);
   }
+  ctx.restore();
  }
  const shade=ctx.createLinearGradient(0,h*.66,0,h*.96);shade.addColorStop(0,'#102c2200');shade.addColorStop(.45,'#102c22dd');shade.addColorStop(1,'#102c22f5');ctx.fillStyle=shade;ctx.fillRect(0,h*.66,w,h*.34);
  const text=opts.text??c.text,maxWidth=w*.52;

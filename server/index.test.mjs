@@ -4,7 +4,7 @@ import {createApp} from './index.mjs';
 const PNG='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aF6sAAAAASUVORK5CYII=';
 const secret='unit-test-password-only',key='fake-provider-key-test-only';
 const env={APP_PASSWORD:secret,GEMINI_API_KEY:key,AI_ENABLED:'true',PUBLIC_ORIGIN:'https://minhavoz.test',AI_DAILY_LIMIT:'20'};
-const body={mode:'professional',prompt:'Luz suave',consent:true,category:'vida',aspectRatio:'4:5',image:{mimeType:'image/png',data:PNG}};
+const body={mode:'card',prompt:'Luz suave',consent:true,category:'vida',aspectRatio:'4:5',image:{mimeType:'image/png',data:PNG}};
 function output(){return new Response(JSON.stringify({status:'completed',steps:[{type:'model_output',content:[{type:'image',mime_type:'image/png',data:PNG}]}]}));}
 async function setup(t,opts={}){const server=createApp({env,...opts});await new Promise(r=>server.listen(0,'127.0.0.1',r));t.after(()=>new Promise(r=>server.close(r)));const url=`http://127.0.0.1:${server.address().port}`;const headers={Authorization:'Basic '+Buffer.from('minhavoz:'+secret).toString('base64'),Origin:env.PUBLIC_ORIGIN,'Content-Type':'application/json','X-Request-ID':crypto.randomUUID()};return {url,headers,post:(value=body,extra={})=>fetch(url+'/api/images/edit',{method:'POST',headers:{...headers,...extra},body:JSON.stringify(value)})};}
 test('rejects insecure startup',()=>assert.throws(()=>createApp({env:{APP_PASSWORD:'short'}})));
@@ -12,8 +12,28 @@ test('health is public; application and config require password',async t=>{const
 test('serves frontend and never exposes environment files',async t=>{const a=await setup(t);const r=await fetch(a.url+'/',{headers:a.headers});assert.match(await r.text(),/ai-generate/);assert.equal((await fetch(a.url+'/.env',{headers:a.headers})).status,404);assert.equal((await fetch(a.url+'/server/index.mjs',{headers:a.headers})).status,404);});
 test('config reveals no key and disabled API makes no provider request',async t=>{const a=await setup(t,{env:{...env,GEMINI_API_KEY:''},fetchImpl:()=>{throw Error('must not call');}});const r=await fetch(a.url+'/api/config',{headers:a.headers});assert.deepEqual(await r.json(),{available:false,model:'gemini-nano-banana-2.1',missingConfig:['GEMINI_API_KEY']});assert.equal((await a.post()).status,503);});
 test('authenticated image flow returns image and sends server-only credentials',async t=>{let sent;const a=await setup(t,{fetchImpl:async(url,options)=>{sent={url,options};return output();}});const r=await a.post();assert.equal(r.status,200);const result=await r.json();assert.equal(result.image.data,PNG);assert(!JSON.stringify(result).includes(key));assert.equal(sent.options.headers['x-goog-api-key'],key);const payload=JSON.parse(sent.options.body);assert.equal(payload.store,false);assert.equal(payload.input[1].data,PNG);assert.equal(payload.response_format.aspect_ratio,'4:5');});
-test('background requests never forward an attached photo',async t=>{let sent;const a=await setup(t,{fetchImpl:async(_,o)=>{sent=JSON.parse(o.body);return output();}});assert.equal((await a.post({...body,mode:'background',category:'bebe'})).status,200);assert.equal(sent.input.length,1);});
-for(const [name,changes,status] of [['consent',{consent:false},400],['prompt length',{prompt:'x'.repeat(1501)},400],['mode',{mode:'arbitrary'},400],['aspect',{aspectRatio:'13:7'},400],['baby transformation',{category:'bebe'},400],['spoofed image',{image:{mimeType:'image/png',data:Buffer.from('not an image at all').toString('base64')}},400]])test('validates '+name,async t=>{const a=await setup(t,{fetchImpl:()=>{throw Error('must not call');}});assert.equal((await a.post({...body,...changes})).status,status);});
+test('card editing always sends the supplied composition and preserves its existing content by default',async t=>{
+ let sent;const a=await setup(t,{fetchImpl:async(_,o)=>{sent=JSON.parse(o.body);return output();}});
+ assert.equal((await a.post()).status,200);assert.equal(sent.input.length,2);
+ assert.equal(sent.input[1].data,PNG);assert.equal(sent.input[1].mime_type,'image/png');
+ assert.match(sent.input[0].text,/Edite o card completo anexado/);
+ assert.match(sent.input[0].text,/textos, assinatura e logotipos/);
+ assert.match(sent.input[0].text,/sem adicionar novamente foto, fundo, texto ou logotipo/);
+ assert.match(sent.input[0].text,/Detalhes do usuário: Luz suave/);
+});
+test('prompt-only and legacy generation requests never call the provider',async t=>{
+ let calls=0;const a=await setup(t,{fetchImpl:async()=>{calls++;return output();}});
+ for(const changes of [{image:undefined},{mode:'background'},{mode:'professional'},{mode:'transform'}])assert.equal((await a.post({...body,...changes},{'X-Request-ID':crypto.randomUUID()})).status,400);
+ assert.equal(calls,0);
+});
+test('baby catalog cards receive composition editing with appearance preservation instructions',async t=>{
+ for(const category of ['bebe','bebe-chegada','bebe-mesversario']){
+  let sent;const a=await setup(t,{fetchImpl:async(_,o)=>{sent=JSON.parse(o.body);return output();}});
+  assert.equal((await a.post({...body,category})).status,200);
+  assert.equal(sent.input[1].data,PNG);assert.match(sent.input[0].text,/preserve integralmente a aparência da criança/);
+ }
+});
+for(const [name,changes,status] of [['consent',{consent:false},400],['prompt length',{prompt:'x'.repeat(1501)},400],['mode',{mode:'arbitrary'},400],['aspect',{aspectRatio:'13:7'},400],['spoofed image',{image:{mimeType:'image/png',data:Buffer.from('not an image at all').toString('base64')}},400]])test('validates '+name,async t=>{const a=await setup(t,{fetchImpl:()=>{throw Error('must not call');}});assert.equal((await a.post({...body,...changes})).status,status);});
 test('rejects cross-origin paid requests',async t=>{const a=await setup(t);assert.equal((await a.post(body,{Origin:'https://other.test'})).status,403);});
 test('does not automatically retry or echo provider errors',async t=>{let n=0;const a=await setup(t,{fetchImpl:async()=>{n++;return new Response(JSON.stringify({error:key}),{status:403});}});const r=await a.post();assert.equal(r.status,502);assert(!(await r.text()).includes(key));assert.equal(n,1);});
 test('provider quota and timeout are explicit',async t=>{const a=await setup(t,{fetchImpl:async()=>new Response('{}',{status:429})});assert.equal((await a.post()).status,429);const b=await setup(t,{fetchImpl:async()=>{throw new DOMException('timeout','TimeoutError');}});assert.equal((await b.post()).status,504);});
@@ -51,19 +71,19 @@ test('shows interactions error code and useful detail while redacting credential
  for(const value of [key,secret,body.prompt,PNG]){assert(!text.includes(value));assert(!JSON.stringify(logs).includes(value));}
 });
 
-test('all generation modes request supported JPEG output and return the provider JPEG',async t=>{
+test('card editing requests supported JPEG output and returns the provider JPEG',async t=>{
  const jpeg="/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAACAAIDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwCnRRRXEeQf/9k=";
- for(const mode of ['background','professional','transform']){
+ {
   let calls=0;
   const a=await setup(t,{fetchImpl:async(_,options)=>{
    calls++;const sent=JSON.parse(options.body);
    assert.equal(sent.response_format.mime_type,'image/jpeg');
    assert.equal(sent.response_format.aspect_ratio,'4:5');
    assert.equal(sent.store,false);
-   if(mode!=='background')assert.equal(sent.input[1].mime_type,'image/png');
+   assert.equal(sent.input[1].mime_type,'image/png');
    return new Response(JSON.stringify({status:'completed',steps:[{type:'model_output',content:[{type:'image',mime_type:'image/jpeg',data:jpeg}]}]}));
   }});
-  const r=await a.post({...body,mode});assert.equal(r.status,200);
+  const r=await a.post(body);assert.equal(r.status,200);
   const result=await r.json();assert.equal(result.image.mimeType,'image/jpeg');assert.equal(result.image.data,jpeg);assert.equal(calls,1);
  }
 });

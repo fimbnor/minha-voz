@@ -20,16 +20,15 @@ function validImage(image){
 export function validate(body){
  if(!body||typeof body.prompt!=='string'||!body.prompt.trim()||body.prompt.length>1500)throw new ApiError(400,'Descreva os detalhes em até 1.500 caracteres.');
  if(body.consent!==true)throw new ApiError(400,'Autorize o envio ao Google antes de gerar.');
- if(!['background','professional','transform'].includes(body.mode))throw new ApiError(400,'Operação inválida.');
+ if(body.mode!=='card')throw new ApiError(400,'Use a edição do card atual.');
  if(!['4:5','9:16','1:1'].includes(body.aspectRatio))throw new ApiError(400,'Formato inválido.');
- if(body.mode!=='background'&&body.category==='bebe')throw new ApiError(400,'Em Meu Bebê, gere apenas o cenário e mantenha a foto original.');
- if(body.mode!=='background')validImage(body.image);
+ validImage(body.image);
  return body;
 }
 export function providerBody(body,model){
- const policies={background:'Crie somente um cenário fotográfico, sem pessoas, para compor depois com uma foto original. Reserve espaço para a pessoa e a mensagem.',professional:'Aprimore a foto com iluminação profissional natural e cores equilibradas. Preserve feições, idade aparente, tom de pele, proporções e textura natural. Não redesenhe a identidade.',transform:'Edite a foto de acordo com os detalhes, preservando a identidade e as proporções da pessoa e os detalhes do objeto principal.'};
- const input=[{type:'text',text:policies[body.mode]+' Não inclua texto, logotipos ou marcas: serão aplicados pelo editor. Detalhes do usuário: '+body.prompt}];
- if(body.mode!=='background')input.push({type:'image',mime_type:body.image.mimeType,data:body.image.data});
+ const policy='Edite o card completo anexado, que representa exatamente a composição atual do usuário. Use essa imagem como base e altere somente o que for solicitado. Preserve a composição, enquadramento, pessoas, objetos, textos, assinatura e logotipos que não forem alvo do pedido. Preserve a identidade, feições, idade aparente, tom de pele e proporções das pessoas. Mantenha textos legíveis e marcas fiéis, salvo alteração explícita. Retorne o card completo já editado, no mesmo formato; ele será exibido diretamente, sem adicionar novamente foto, fundo, texto ou logotipo.';
+ const baby=typeof body.category==='string'&&/^(bebe|baby)(-|$)/.test(body.category)?' Em cards de bebê, limite as mudanças ao cenário e à decoração; preserve integralmente a aparência da criança.':'';
+ const input=[{type:'text',text:policy+baby+' Detalhes do usuário: '+body.prompt},{type:'image',mime_type:body.image.mimeType,data:body.image.data}];
  return {model,input,store:false,response_format:{type:'image',mime_type:'image/jpeg',aspect_ratio:body.aspectRatio,image_size:'1K'}};
 }
 export function extractImage(data){
