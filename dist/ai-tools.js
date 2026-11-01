@@ -1,8 +1,10 @@
 'use strict';
 let aiReady=false,aiRunning=false,aiCandidate=null;
 const aiEdits=new Map();
-const aiLayerKeys=['campaign','palette','photo','background','format','text','signature','scale','x','y','gray','font','textSize','cutout','logo','logoSize','logoPosition','logoOpacity','logoPlate'];
-function aiScope(){return JSON.stringify([state.campaign.id,state.format,state.format==='carousel'?state.slide:0]);}
+const aiLayerKeys=['pageId','campaign','palette','photo','background','backgroundMode','backgroundColor','textColor','signatureColor','signaturePlate','format','text','signature','scale','x','y','gray','font','textSize','cutout','logo','logoSize','logoPosition','logoOpacity','logoPlate'];
+function aiScope(){return JSON.stringify([state.pageId||state.campaign.id,state.format,state.pageId?0:state.format==='carousel'?state.slide:0]);}
+function resetAIEdits(){aiEdits.clear();clearAICandidate();state.aiCard=null;}
+function carryAICardToFormat(image){const scope=aiScope();if(image)aiEdits.set(scope,{image,layers:aiLayers(),previous:aiEdits.get(scope)||null});else aiEdits.delete(scope);state.aiCard=image||null;}
 function aiLayers(){return aiLayerKeys.map(key=>state[key]);}
 function sameAILayers(a,b){return a.length===b.length&&a.every((value,i)=>value===b[i]);}
 function aiSnapshot(){return {scope:aiScope(),layers:aiLayers(),image:state.aiCard};}
@@ -43,11 +45,7 @@ window.addEventListener('focus',()=>{if(!aiReady&&!aiRunning)checkAI();});
 function aiNotice(message,field){const status=$('#prompt-status');status.textContent=message;status.scrollIntoView({block:'nearest'});if(field)$(field).focus();}
 async function aiSource(snapshot){
  await document.fonts.ready;
- if(!state.aiCard&&state.format!=='instagram-profile'){
-  catalogBackground(state.campaign);
-  const background=backgroundCache.get(state.campaign.backgroundUrl);
-  if(background)await background.decode();
- }
+ if(!state.aiCard)await waitForCardAssets();
  renderPreview();
  if(!sameAISnapshot(snapshot,aiSnapshot()))throw Error('O card mudou. Confira a prévia e envie o pedido novamente.');
  const preview=$('#preview-canvas'),canvas=document.createElement('canvas');

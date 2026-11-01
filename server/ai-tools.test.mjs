@@ -15,7 +15,7 @@ async function editor(){
  const backgrounds=new Map([['/amor.png',{decode:async()=>{}}]]);
  let context,respond=async()=>({image:{mimeType:'image/png',data:encode('card editado '+requests.length)}});
  const document={fonts:{ready:Promise.resolve()},createElement(tag){assert.equal(tag,'canvas');return {width:0,height:0,bytes:'',getContext(){return {drawImage:(image)=>{this.bytes=image.bytes;}};},toDataURL(){return 'data:image/png;base64,'+this.bytes;}};}};
- context=vm.createContext({$,state,document,window:{addEventListener(){}},backgroundCache:backgrounds,catalogBackground(){},toast:message=>messages.push(message),crypto,AbortSignal,Image:class{async decode(){}},renderPreview(){context.syncAICard();preview.bytes=state.aiCard?state.aiCard.src.split(',')[1]:encode(JSON.stringify({text:state.text,signature:state.signature,photo:state.photo,logo:state.logo,background:state.background,scale:state.scale,x:state.x,y:state.y}));},fetch:async(url,options)=>{
+ context=vm.createContext({$,state,document,window:{addEventListener(){}},backgroundCache:backgrounds,catalogBackground(){},waitForCardAssets:async()=>{await document.fonts.ready;},toast:message=>messages.push(message),crypto,AbortSignal,Image:class{async decode(){}},renderPreview(){context.syncAICard();preview.bytes=state.aiCard?state.aiCard.src.split(',')[1]:encode(JSON.stringify({text:state.text,signature:state.signature,photo:state.photo,logo:state.logo,background:state.background,scale:state.scale,x:state.x,y:state.y}));},fetch:async(url,options)=>{
   if(url==='/api/config')return {ok:true,json:async()=>({available:true})};
   assert.equal(url,'/api/images/edit');requests.push(JSON.parse(options.body));return {ok:true,json:async()=>respond()};
  }});
@@ -53,12 +53,12 @@ test('a changed composition before sending does not spend a provider request',as
  assert.equal(e.requests.length,0);assert.match(e.$('#prompt-status').textContent,/card mudou/);
 });
 test('rejects stale results after composition changes while waiting for the provider',async()=>{
- for(const key of ['text','signature','logo','background','photo','format','campaign','scale']){
+ for(const key of ['text','signature','logo','background','photo','format','campaign','scale','textColor','signatureColor','backgroundMode','backgroundColor','pageId']){
   const e=await editor();let release,started;
   const sent=new Promise(resolve=>started=resolve);
   e.setResponse(()=>{started();return new Promise(resolve=>release=()=>resolve({image:{mimeType:'image/png',data:encode('resultado antigo')}}));});
   const pending=e.generate();await sent;
-  e.state[key]=key==='campaign'?{id:'outro'}:key==='format'?'story':key==='scale'?125:key==='text'||key==='signature'?'mudou':{};
+  e.state[key]=key==='campaign'?{id:'outro'}:key==='format'?'story':key==='scale'?125:key==='text'||key==='signature'||key==='pageId'?'mudou':key.endsWith('Color')?'#abcdef':key==='backgroundMode'?'color':{};
   release();await pending;e.accept();assert.equal(e.state.aiCard,null);assert.equal(e.$('#ai-result').hidden,true);assert.match(e.$('#prompt-status').textContent,/card mudou durante a edição/i);
  }
 });
@@ -82,7 +82,7 @@ const drawSource=app.slice(app.indexOf('function drawCard('),app.indexOf('functi
 test('approved full cards render once without duplicate text, photos, backgrounds or logos',()=>{
  for(const format of ['feed','story','square','profile','photo','carousel','instagram-profile']){
   const calls=[],ctx=new Proxy({}, {get:(_,method)=>(...args)=>calls.push([method,...args])});
-  const context=vm.createContext({Math,drawInstagramProfile(){throw Error('must not overlay profile elements');},scene(){throw Error('must not overlay scene');},drawLogo(){throw Error('must not overlay logo');}});
+  const context=vm.createContext({Math,drawCover:(ctx,image,...args)=>ctx.drawImage(image,...args),drawInstagramProfile(){throw Error('must not overlay profile elements');},scene(){throw Error('must not overlay scene');},drawLogo(){throw Error('must not overlay logo');}});
   vm.runInContext(drawSource,context);const image={};context.drawCard({width:1080,height:1350,getContext:()=>ctx},{},{aiCard:image,format,text:'old text',photo:{},logo:{},background:{}});
   assert.equal(calls.filter(([method])=>method==='drawImage').length,1);assert.equal(calls.find(([method])=>method==='drawImage')[1],image);
   assert.equal(calls.some(([method])=>method==='fillText'),false);assert.equal(calls.some(([method])=>method==='clip'),format==='instagram-profile');

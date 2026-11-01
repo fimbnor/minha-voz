@@ -40,7 +40,7 @@ O botão **Editar card com Gemini** envia uma imagem PNG da composição complet
 
 O resultado aparece separado para conferência. **Usar este resultado** substitui a imagem completa da prévia e da exportação, sem reaplicar por cima os elementos originais. **Descartar** mantém o card atual. O próximo pedido usa a última versão aprovada como base; **Desfazer** retorna à edição aprovada anterior e, depois, à composição original.
 
-As versões são separadas por modelo, formato e página do carrossel. Mudanças no card durante o pedido ou antes da aprovação invalidam o resultado antigo. A captura aguarda as fontes e o fundo do modelo, para não enviar uma composição incompleta.
+As versões usam a identidade estável de cada post e o formato. Ao trocar de formato, a imagem aprovada atual é mantida e reenquadrada; o perfil circular não retoma uma imagem antiga. Mudanças no card durante o pedido ou antes da aprovação invalidam o resultado antigo. A captura aguarda as fontes e o fundo do modelo, para não enviar uma composição incompleta.
 
 O resultado do Gemini é uma imagem única: suas alterações não são convertidas em camadas editáveis. Continue modificando essa versão por novos prompts, ou desfaça para editar os elementos originais. Um ajuste manual retoma esses elementos e substitui as versões da IA daquela composição; essa transição é explicada na interface.
 
@@ -66,7 +66,13 @@ Esta autenticação é para testes privados com uma senha compartilhada. Contado
 
 ## Editor
 
-12 modelos em Minha Vida, Meu Mundo e Minhas Paixões. Fotos, fundos, texto, cores, fontes, logotipo com tamanho/posição/opacidade e exportação PNG 1080×1350, 1080×1920 e 1080×1080. Carrossel com três páginas baixadas separadamente. Favoritos locais.
+24 modelos filtrados por **Fotos**, **Banners** e **Montagens**, com categorias temáticas independentes. A classificação dos modelos está explícita em `dist/composition-tools.js`. As categorias aparecem uma vez, com ícones, e os modelos da categoria são apresentados pelos nomes e miniaturas.
+
+O fundo pode ser a imagem do modelo, uma imagem enviada ou uma cor sólida. A paleta e o seletor de cor substituem o fundo e não mudam a cor do texto. Mensagem e assinatura têm seletores de cor independentes; a assinatura inclui uma placa de contraste opcional, ativada inicialmente. As cores recomendadas pelo catálogo são usadas no primeiro carregamento; escolhas de cor do usuário são preservadas ao trocar de modelo.
+
+Os fundos retangulares e circulares usam o mesmo renderizador. Durante o carregamento, há apenas um fundo neutro; as antigas cenas procedurais foram removidas. A conclusão de um carregamento antigo não muda o modelo ativo. A exportação e o envio à IA aguardam o fundo selecionado; uploads antigos ou de uma página abandonada não substituem a escolha atual.
+
+Carrosséis começam com três posts e aceitam de dois a dez. Cada post tem sua própria foto, original, máscara, ajustes, fundo, modelo, frase, assinatura, cores e logotipo. É possível enviar várias fotos a partir do post atual, escolher outra imagem do catálogo para cada post e adicionar ou remover posts. As páginas são baixadas individualmente em PNG. Os formatos continuam em 1080×1350, 1080×1920 e 1080×1080. Favoritos locais.
 
 Recorte experimental de pessoas com MediaPipe Tasks Vision 0.10.21 e Selfie Segmenter float16 v1, servidos na própria origem. Ajustes locais de exposição, contraste, temperatura e saturação, comparação/restauração do original e regulagem de bordas. Não há pincel de máscara nesta versão. Objetos e pets não são garantidos pelo modelo de retrato. Arquivos com licenças de terceiros ficam em `dist/vendor/mediapipe`.
 
@@ -78,7 +84,7 @@ A altura do editor acompanha a área visível do navegador com `VisualViewport`,
 
 ## Validação desta entrega
 
-46 testes automatizados com provedor simulado: captura da composição, edição sequencial, aplicação sem sobreposição de elementos, descarte, desfazer, invalidação de resultados antigos, isolamento de páginas/formatos/modelos, inicialização com o catálogo atual, ajuste de viewport/teclado simulado, ampliação da prévia, navegação entre etapas sem deslocar a imagem, consentimento, rejeição do fluxo antigo e validações da API, além dos testes de autenticação, privacidade, erros, cotas e recorte de logotipo. Sintaxe dos scripts do navegador verificada.
+60 testes automatizados com provedor simulado: captura da composição, edição sequencial, aplicação sem sobreposição de elementos, descarte, desfazer, invalidação de resultados antigos, isolamento de páginas/formatos/modelos, inicialização com o catálogo atual, ajuste de viewport/teclado simulado, ampliação da prévia, navegação entre etapas sem deslocar a imagem, categorias únicas com ícones, filtros por estilo, cores independentes, fundos circulares, dados separados por post, envio de várias fotos, carregamentos fora de ordem, espera do fundo na exportação, consentimento, rejeição do fluxo antigo e validações da API, além dos testes de autenticação, privacidade, erros, cotas e recorte de logotipo. Sintaxe dos scripts do navegador verificada.
 
 Não foi usada uma chave real, não houve chamada real ao Gemini e não houve teste completo no Render. A qualidade visual da geração, acesso ao modelo, faturamento e compatibilidade em aparelhos reais precisam ser confirmados depois. A inicialização dos scripts foi testada em DOM simulado. O teste visual em navegador ficou pendente porque o navegador de validação não conseguiu acessar os arquivos locais do ambiente de desenvolvimento. O comportamento do teclado ainda precisa ser conferido em aparelhos reais.
 
