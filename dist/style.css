@@ -206,3 +206,5 @@ button,a,[role="button"]{touch-action:manipulation}
   .topic-shortcuts button, .filters .filter { font-size: 13px; }
   .filters .filter > span { font-size: 11px; }
 }
+
+.category-guide{margin:12px 0 18px;flex-wrap:wrap}.category-guide>span{flex:1 1 180px}.category-guide .category-guide-close{background:transparent;color:#214e3e;border:0;font-size:22px;padding:4px;min-width:40px}

@@ -106,7 +106,7 @@ ctx.textBaseline='alphabetic';for(let i=0;i<lines.length;i++)ctx.fillText(lines[
 if(!opts.photo){ctx.font=`${14*k}px Arial`;ctx.fillText('SUA VOZ FAZ PARTE.',margin,yy+lines.length*fontSize*1.04+25*k);ctx.fillStyle=p.accent;ctx.fillRect(margin,yy+lines.length*fontSize*1.04+40*k,60*k,3*k);}
 drawSignature(ctx,w,h,opts);ctx.font=`${38*k}px Georgia`;ctx.textAlign='right';ctx.fillText('✳',w-margin,h-28*k);ctx.restore();drawLogo(ctx,w,h,opts);
 }
-function renderCatalog(){const list=visibleCampaigns(campaigns,{style:filter,category:categoryFilter,onlySaved,saved,query});$('#campaign-grid').innerHTML='';list.forEach(c=>{let e=document.createElement('article');e.className='campaign-card';e.innerHTML=`<button class="campaign-open" aria-label="Criar card: ${c.name}"><div class="campaign-art">${c.nativeScene?'<canvas width="480" height="600" role="img" aria-label="'+c.name+'"></canvas>':'<img src="'+c.backgroundUrl+'" alt="'+c.name+'" loading="lazy" width="480" height="600">'}</div><span class="campaign-category">${IMAGE_STYLES[c.imageStyle].label} · ${c.category}</span><h3>${c.name}</h3></button><button class="favorite ${saved.has(c.id)?'selected':''}" aria-label="${saved.has(c.id)?'Remover dos':'Adicionar aos'} favoritos: ${c.name}" aria-pressed="${saved.has(c.id)}">${icon('heart')}</button>`;$('#campaign-grid').append(e);if(c.nativeScene)drawCard(e.querySelector('canvas'),c);e.querySelector('.campaign-open').onclick=()=>openEditor(c);e.querySelector('.favorite').onclick=()=>{saved.has(c.id)?saved.delete(c.id):saved.add(c.id);try{localStorage.setItem('minhavoz-favorites',JSON.stringify([...saved]));}catch{toast('Favoritos disponíveis apenas nesta sessão.');}renderCatalog();};});$('#saved-count').textContent=saved.size;$('#catalog-count').textContent=`${list.length} ${list.length===1?'modelo':'modelos'}`;$('#empty-state').hidden=list.length>0;}
+function renderCatalog(){const list=visibleCampaigns(campaigns,{style:filter,category:categoryFilter,onlySaved,saved,query});$('#campaign-grid').innerHTML='';list.forEach(c=>{let e=document.createElement('article');e.className='campaign-card';e.innerHTML=`<button class="campaign-open" aria-label="Criar card: ${c.name}"><div class="campaign-art">${c.nativeScene?'<canvas width="480" height="600" role="img" aria-label="'+c.name+'"></canvas>':'<img src="'+c.backgroundUrl+'" alt="'+c.name+'" loading="lazy" width="480" height="600">'}</div><span class="campaign-category">${IMAGE_STYLES[c.imageStyle].label} · ${c.category}</span><h3>${c.name}</h3></button><button class="favorite ${saved.has(c.id)?'selected':''}" aria-label="${saved.has(c.id)?'Remover dos':'Adicionar aos'} favoritos: ${c.name}" aria-pressed="${saved.has(c.id)}">${icon('heart')}</button>`;$('#campaign-grid').append(e);if(c.nativeScene)drawCard(e.querySelector('canvas'),c);e.querySelector('.campaign-open').onclick=()=>{if(document.querySelector('.category-guide'))dismissCategoryGuide();openEditor(c);};e.querySelector('.favorite').onclick=()=>{saved.has(c.id)?saved.delete(c.id):saved.add(c.id);try{localStorage.setItem('minhavoz-favorites',JSON.stringify([...saved]));}catch{toast('Favoritos disponíveis apenas nesta sessão.');}renderCatalog();};});$('#saved-count').textContent=saved.size;$('#catalog-count').textContent=`${list.length} ${list.length===1?'modelo':'modelos'}`;$('#empty-state').hidden=list.length>0;}
 function setStep(n){state.step=n;$$('[data-panel]').forEach(e=>e.hidden=Number(e.dataset.panel)!==n);$$('[data-step]').forEach(e=>{e.classList.toggle('current',Number(e.dataset.step)===n);e.setAttribute('aria-current',Number(e.dataset.step)===n?'step':'false');});$('.editor-controls').scrollTop=0;}
 function selectCampaign(c){
  state.campaign=c;state.palette=c.color;state.background=null;state.backgroundMode='image';state.backgroundUploadRevision++;
@@ -129,16 +129,19 @@ function renderOptions(){
 }
 function renderActiveCategory(){const box=$('#active-category');box.replaceChildren();box.hidden=categoryFilter==='all';if(box.hidden)return;const chip=document.createElement('span');chip.className='active-category-chip';chip.appendChild(document.createTextNode(categoryFilter));const clear=document.createElement('button');clear.type='button';clear.textContent='Mostrar todos';clear.onclick=()=>{categoryFilter='all';try{localStorage.removeItem('minhavoz-category');}catch{}renderCategoryShortcuts();renderCatalog();};box.append(chip,clear);}
 let categoryGuideShown=false;
-try{categoryGuideShown=localStorage.getItem('minhavoz-category-guide-shown')==='1';}catch{}
-function showCategoryGuide(){
- if(categoryGuideShown)return;
+try{categoryGuideShown=localStorage.getItem('minhavoz-category-guide-ack-v2')==='1';}catch{}
+function dismissCategoryGuide(){
  categoryGuideShown=true;
- try{localStorage.setItem('minhavoz-category-guide-shown','1');}catch{}
+ try{localStorage.setItem('minhavoz-category-guide-ack-v2','1');}catch{}
+ document.querySelector('.category-guide')?.remove();
+}
+function showCategoryGuide(){
+ if(categoryGuideShown||document.querySelector('.category-guide'))return;
  const guide=document.createElement('div');guide.className='category-guide';guide.setAttribute('role','status');
- const message=document.createElement('span');message.textContent='Agora escolha um modelo para personalizar seu card.';
- const close=document.createElement('button');close.type='button';close.textContent='Entendi';close.setAttribute('aria-label','Fechar orientação');close.onclick=()=>guide.remove();
- guide.append(message,close);$('#campaign-grid').before(guide);
- guide.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'center'});
+ const message=document.createElement('span');message.textContent='Categoria escolhida! Agora selecione um modelo para personalizar seu card.';
+ const go=document.createElement('button');go.type='button';go.textContent='Ver modelos';go.onclick=()=>{dismissCategoryGuide();$('#campaigns').scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});};
+ const close=document.createElement('button');close.type='button';close.className='category-guide-close';close.textContent='×';close.setAttribute('aria-label','Fechar orientação');close.onclick=dismissCategoryGuide;
+ guide.append(message,go,close);$('#toggle-categories').after(guide);
 }
 function renderCategoryShortcuts(){
  renderActiveCategory();
