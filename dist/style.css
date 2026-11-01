@@ -440,3 +440,15 @@ details[open]>summary::after{content:'−'}
  #floating-preview-full{width:32px;padding:7px}
  #floating-preview-full svg{width:17px;height:17px}
 }
+/* Thin vertical rails follow the image edges; upward increases each value. */
+@media(max-width:580px),(max-width:900px) and (max-height:500px){
+ .preview-edge-rail{position:absolute;top:40px;bottom:24px;width:28px;display:flex;justify-content:center;align-items:flex-start;pointer-events:auto;z-index:2}
+ .preview-opacity-rail{left:0}
+ .preview-size-rail{right:0}
+ .preview-edge-rail input[type=range]{writing-mode:vertical-lr;direction:rtl;appearance:auto;width:28px;height:100%;min-height:0;margin:0;padding:0;accent-color:#234e3c;touch-action:none;cursor:ns-resize;filter:drop-shadow(0 1px 2px #fffefa);background:transparent}
+ .floating-preview-bar{right:26px}
+ #floating-preview-full{display:flex;align-items:center;justify-content:center}
+ .small-floating-preview .floating-preview-bar{right:6px;top:2px}
+ .small-floating-preview .floating-preview-bar button,.small-floating-preview #floating-preview-close{width:24px;height:28px;min-height:28px;padding:5px}
+ .small-floating-preview .preview-edge-rail{top:34px;bottom:18px}
+}
