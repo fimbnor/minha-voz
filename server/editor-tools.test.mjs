@@ -72,3 +72,16 @@ test('mobile preview actions open the current card and return to the same task',
  e.$('#return-to-editor').onclick();assert.equal(e.state.step,5);
  e.$('#review-card').onclick();assert.equal(e.$('#preview-dialog').open,true);
 });
+
+test('typing marks the editing state and blur restores normal controls',()=>{
+ const e=editor();e.$('#editor').open=true;
+ e.document.activeElement={control:true,tagName:'TEXTAREA',scrollIntoView(){}};
+ e.$('#editor').listeners.get('focusin')();e.flush();
+ assert(e.$('#editor').classes.has('editing-text'));
+ e.document.activeElement={control:true,tagName:'INPUT',type:'range',scrollIntoView(){}};
+ e.$('#editor').listeners.get('focusout')();e.flush();
+ assert(!e.$('#editor').classes.has('editing-text'));
+ e.document.activeElement={control:true,tagName:'INPUT',type:'text',scrollIntoView(){}};
+ e.context.syncEditorViewport();assert(e.$('#editor').classes.has('editing-text'));
+ e.$('#editor').close();assert(!e.$('#editor').classes.has('editing-text'));
+});

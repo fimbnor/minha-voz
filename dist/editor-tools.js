@@ -5,13 +5,17 @@ function syncEditorViewport(){
  const editor=$('#editor');
  syncPreviewSize();
  if(!editor.open||!(mobileEditor.matches||landscapeEditor.matches)){
-  editor.style.removeProperty('--editor-height');editor.style.removeProperty('--editor-top');editor.classList.remove('compact-editor');return;
+  editor.style.removeProperty('--editor-height');editor.style.removeProperty('--editor-top');editor.classList.remove('compact-editor');editor.classList.remove('editing-text');return;
  }
  const viewport=window.visualViewport;
  const height=Math.round(viewport?.height||window.innerHeight);
+ const active=document.activeElement;
+ const typing=$('.editor-controls').contains(active)&&(active?.tagName==='TEXTAREA'||active?.tagName==='INPUT'&&['text','search','email','number','tel','url','password'].includes(active.type));
+ editor.classList.toggle('editing-text',typing);
  editor.style.setProperty('--editor-height',height+'px');
  editor.style.setProperty('--editor-top',Math.round(viewport?.offsetTop||0)+'px');
  editor.classList.toggle('compact-editor',height<500);
+ if(typeof clampFloatingPreview==='function')clampFloatingPreview();
 }
 let editorViewportFrame;
 function scheduleEditorViewport(){
@@ -52,7 +56,7 @@ function previewLimits(){
 function syncPreviewSize(){
  const height=Math.round(window.visualViewport?.height||window.innerHeight);
  const limits=previewLimits();
- if(previewHeight===null)previewHeight=Math.round(height*((mobileEditor.matches||landscapeEditor.matches)?0.25:0.55));
+ if(previewHeight===null)previewHeight=Math.round(height*((mobileEditor.matches||landscapeEditor.matches)?0.22:0.55));
  const pixels=Math.max(limits.min,Math.min(limits.max,previewHeight));
  $('#preview-canvas').style.setProperty('--preview-size',pixels+'px');
  previewHandle.setAttribute('aria-valuemin',String(limits.min));
@@ -91,8 +95,8 @@ previewHandle.addEventListener('keydown',event=>{
 });
 syncPreviewSize();
 
-// Each task has its own screen. On phones the artwork is available on demand.
+// Full-screen review complements the mobile floating live preview.
 $('#view-card').onclick=()=>$('#expand-preview').onclick();
 $('#review-card').onclick=()=>$('#expand-preview').onclick();
-$('#editor').addEventListener('focusin',scheduleEditorViewport);
-$('#editor').addEventListener('focusout',scheduleEditorViewport);
+$('#editor').addEventListener('focusin',()=>{syncEditorViewport();scheduleEditorViewport();});
+$('#editor').addEventListener('focusout',()=>{$('#editor').classList.remove('editing-text');scheduleEditorViewport();});

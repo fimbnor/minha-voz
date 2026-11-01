@@ -29,5 +29,5 @@ $('#toggle-categories').onclick=()=>{
  const button=$('#toggle-categories'),expanded=button.getAttribute('aria-expanded')!=='true';
  $('#category-shortcuts').classList.toggle('categories-expanded',expanded);
  button.setAttribute('aria-expanded',String(expanded));
- button.innerHTML=(expanded?'Mostrar menos':'Ver todas as categorias')+' <span aria-hidden="true">⌄</span>';
+ button.innerHTML=(expanded?'Mostrar menos':'Ver todas as categorias')+' <span aria-hidden="true"></span>';
 };
