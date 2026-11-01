@@ -43,7 +43,7 @@ test('lower-left resize shrinks upward to button size and grows to screen bounds
  const before=start();e.context.resizeFloatingPreview('sw',0,-100,before);
  assert(start().width<before.width);assert.equal(start().top,before.top);
  assert.equal(start().left+start().width,before.left+before.width);
- e.context.resizeFloatingPreview('sw',10000,-10000,before);assert.equal(start().width,80);
+ e.context.resizeFloatingPreview('sw',10000,-10000,before);assert.equal(start().width,96);
  e.context.resizeFloatingPreview('sw',-10000,10000,before);
  assert.equal(start().width,390);assert.equal(start().height,487.5);assert(start().left>=0);assert(start().top>=0);
  assert.equal(e.$('#preview-canvas').width,1080);assert.equal(e.$('#preview-canvas').height,1350);
@@ -75,7 +75,7 @@ test('collapsed card can move and expand at its new position without losing opac
  const geometry=()=>JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
  const width=geometry().width;
  e.$('#floating-preview-opacity').oninput({target:{value:'55'}});
- e.$('#floating-preview-close').onclick();assert.equal(geometry().width,80);
+ e.$('#floating-preview-close').onclick();assert.equal(geometry().width,96);
  e.context.setFloatingPreviewPosition(240,320);
  const miniature=geometry();assert.equal(miniature.left,240);assert.equal(miniature.top,320);
  e.context.restoreFloatingPreview();
@@ -87,7 +87,7 @@ test('collapsed card can move and expand at its new position without losing opac
 test('mobile editor opens with a live movable miniature without an extra preview button',async()=>{
  const e=await editor();e.open();
  const g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));
- assert.equal(g.width,80);assert.equal(e.$('#floating-preview-panel').hidden,false);
+ assert.equal(g.width,96);assert.equal(e.$('#floating-preview-panel').hidden,false);
  assert(e.$('#floating-preview').classes.has('small-floating-preview'));
  e.context.setFloatingPreviewPosition(20,120);
  e.context.renderPreview();
@@ -100,7 +100,7 @@ test('miniature expands in one explicit full-screen action and the lower-left ha
  e.$('#floating-preview-full').onclick();
  let g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));assert.equal(g.width,390);
  e.context.resizeFloatingPreview('sw',10000,-10000,g);
- g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));assert.equal(g.width,80);
+ g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));assert.equal(g.width,96);
  e.$('#floating-preview-full').onclick();
  g=JSON.parse(vm.runInContext('JSON.stringify(floatingPreviewGeometry)',e.context));assert.equal(g.width,390);
  assert(e.$('[data-preview-corner="sw"]').events.has('pointerdown'));

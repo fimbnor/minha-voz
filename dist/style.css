@@ -476,3 +476,19 @@ details[open]>summary::after{content:'−'}
  .small-floating-preview .floating-preview-bar{top:3px;right:3px}
  .preview-corner-sw{width:40px;height:40px;left:-6px;bottom:-6px}
 }
+/* Separate touch targets instead of grouping small icons in a tight toolbar. */
+@media(max-width:580px),(max-width:900px) and (max-height:500px){
+ .floating-preview-bar,.small-floating-preview .floating-preview-bar{inset:0;display:block;pointer-events:none;border:0;border-radius:0;background:transparent;box-shadow:none}
+ .floating-preview-bar button,.small-floating-preview .floating-preview-bar button,.small-floating-preview #floating-preview-move,.small-floating-preview #floating-preview-full{position:absolute;width:44px;height:44px;min-height:44px;padding:12px;pointer-events:auto;border:1px solid #b7c9aa;background:#fafbf6f2;border-radius:9px;box-shadow:0 2px 8px #122d2526}
+ .floating-preview-bar svg,#floating-preview-full svg{width:18px;height:18px}
+ #floating-preview-full{top:4px;left:4px;right:auto;bottom:auto}
+ #floating-preview-move{top:4px;left:50%;right:auto;transform:translateX(-50%)}
+ #floating-preview-close{top:4px;right:4px;left:auto}
+ .preview-opacity-rail{top:56px}
+ .small-floating-preview #floating-preview-move{top:2px;right:2px;left:auto;transform:none}
+ .small-floating-preview #floating-preview-full{top:auto;bottom:2px;right:2px;left:auto}
+ .preview-corner-sw{width:44px;height:44px}
+}
+@media(max-width:580px),(max-width:900px) and (max-height:500px){
+ .floating-preview-bar #floating-preview-full,.floating-preview-bar #floating-preview-move,.floating-preview-bar #floating-preview-close{width:44px;height:44px;min-height:44px;padding:12px;border:1px solid #b7c9aa;background:#fafbf6f2;border-radius:9px;box-shadow:0 2px 8px #122d2526}
+}
