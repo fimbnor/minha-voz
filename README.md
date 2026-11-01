@@ -95,3 +95,14 @@ Não foi usada uma chave real, não houve chamada real ao Gemini e não houve te
 - https://ai.google.dev/gemini-api/docs/api-key
 - https://render.com/docs/web-services
 - https://render.com/docs/configure-environment-variables
+
+## Integração Firebase (em desenvolvimento)
+
+Esta integração deve ser validada em um projeto de teste antes de ser ativada em produção. Sem `FIREBASE_AUTH_ENABLED=true`, a proteção atual de testes continua em uso. Com a integração habilitada, a aplicação fica acessível sem a senha compartilhada e a edição com Gemini exige um token Firebase válido.
+
+1. Crie um aplicativo **Web** no projeto Firebase e obtenha seu objeto de configuração público. Ative Authentication com Google e e-mail/senha, adicione o domínio do Render e `localhost` aos domínios autorizados e crie o bucket do Firebase Storage (plano Blaze). Configure o CORS do bucket para a origem HTTPS real da aplicação; `getBytes()` usa leitura pelo navegador.
+2. Configure no Render `FIREBASE_AUTH_ENABLED=true` e `FIREBASE_WEB_CONFIG` como JSON em uma única linha com `apiKey`, `authDomain`, `projectId`, `appId`, `storageBucket` e, se disponível, `messagingSenderId`. Estes são dados de configuração web; nunca inclua chave privada de conta de serviço. Mantenha `PUBLIC_ORIGIN`, `GEMINI_API_KEY` e demais variáveis existentes no servidor.
+3. Revise e teste as regras de `firestore.rules` e `storage.rules`. Publique-as no projeto correto antes de ativar o recurso. Elas isolam projetos e arquivos pelo UID, mas ainda requerem validação independente.
+4. Execute `npm ci`, `npm run build` e os testes. Para testar regras localmente, use `npx firebase-tools emulators:exec --project demo-minha-voz --only firestore,storage 'node tests/firebase-rules.mjs'`. Depois, verifique login, recuperação de senha, e o acesso cruzado com duas contas reais de teste.
+
+Os projetos existentes no navegador continuam locais. Abra um rascunho local e escolha **Salvar projeto** enquanto estiver conectado para gravar uma cópia na conta. As imagens do projeto são armazenadas em arquivos JSON privados no Storage, com limite de 40 MB por projeto; a lista e os metadados ficam no Firestore. Excluir o projeto remove o registro e tenta apagar o arquivo, mas falhas na exclusão podem deixar arquivos órfãos e devem ser tratadas por rotina futura de limpeza. A edição no Gemini continua submetida ao limite diário compartilhado da instância.

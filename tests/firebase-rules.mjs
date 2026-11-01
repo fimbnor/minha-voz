@@ -1,0 +1,35 @@
+import {initializeTestEnvironment,assertFails,assertSucceeds} from '@firebase/rules-unit-testing';
+import {doc,getDoc,setDoc,getDocs,collection,serverTimestamp,updateDoc,deleteDoc} from 'firebase/firestore';
+import {ref,uploadBytes,getBytes,deleteObject} from 'firebase/storage';
+import {readFileSync} from 'node:fs';
+const env=await initializeTestEnvironment({projectId:'demo-minha-voz',firestore:{rules:readFileSync('firestore.rules','utf8')},storage:{rules:readFileSync('storage.rules','utf8')}});
+try {
+ const a=env.authenticatedContext('alice'), b=env.authenticatedContext('bob'), unauth=env.unauthenticatedContext();
+ const id='11111111-1111-4111-8111-111111111111', revision='22222222-2222-4222-8222-222222222222';
+ const path=`users/alice/projects/${id}/${revision}.json`;
+ const project=db=>doc(db,'users','alice','projects',id);
+ const data={title:'Meu card',updatedAt:serverTimestamp(),path,version:1};
+ await assertSucceeds(setDoc(project(a.firestore()),data));
+ await assertSucceeds(getDoc(project(a.firestore())));
+ await assertSucceeds(getDocs(collection(a.firestore(),'users','alice','projects')));
+ await assertFails(getDoc(project(b.firestore())));
+ await assertFails(getDocs(collection(b.firestore(),'users','alice','projects')));
+ await assertFails(getDoc(project(unauth.firestore())));
+ await assertFails(setDoc(project(b.firestore()),data));
+ await assertFails(updateDoc(project(a.firestore()),{title:'x'.repeat(101),updatedAt:serverTimestamp()}));
+ await assertFails(updateDoc(project(a.firestore()),{title:5,updatedAt:serverTimestamp()}));
+ await assertFails(updateDoc(project(a.firestore()),{path:'users/bob/projects/a/b.json',updatedAt:serverTimestamp()}));
+ await assertFails(updateDoc(project(a.firestore()),{role:'admin',updatedAt:serverTimestamp()}));
+ await assertFails(updateDoc(project(a.firestore()),{updatedAt:new Date(0)}));
+ await assertSucceeds(updateDoc(project(a.firestore()),{title:'Novo',updatedAt:serverTimestamp()}));
+ const object=ctx=>ref(ctx.storage(),path);
+ await assertSucceeds(uploadBytes(object(a),new TextEncoder().encode('{}'),{contentType:'application/json'}));
+ await assertSucceeds(getBytes(object(a)));
+ await assertFails(getBytes(object(b)));
+ await assertFails(uploadBytes(object(b),new Uint8Array([1]),{contentType:'application/json'}));
+ await assertFails(uploadBytes(object(a),new Uint8Array([1]),{contentType:'text/html'}));
+ await assertFails(deleteObject(object(b)));
+ await assertSucceeds(deleteObject(object(a)));
+ await assertSucceeds(deleteDoc(project(a.firestore())));
+ console.log('Firebase rules: isolation and validation tests passed');
+} finally {await env.cleanup();}

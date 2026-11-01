@@ -3,6 +3,8 @@ import {createHash,timingSafeEqual} from 'node:crypto';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import path from 'node:path';
+import {initializeApp as initializeFirebase, getApps} from 'firebase-admin/app';
+import {getAuth} from 'firebase-admin/auth';
 
 const ROOT=fileURLToPath(new URL('../dist/',import.meta.url));
 const ENDPOINT='https://generativelanguage.googleapis.com/v1beta/interactions';
@@ -72,21 +74,38 @@ async function provider(fetchImpl,payload,key,timeoutMs,password){
  }
  const raw=await r.text();if(raw.length>14*1024*1024)throw new ApiError(502,'Imagem de resposta muito grande.');let data;try{data=JSON.parse(raw);}catch{throw new ApiError(502,'Resposta inválida do Gemini.');}return extractImage(data);
 }
-export function createApp({env=process.env,fetchImpl=fetch,now=Date.now,timeoutMs=120000}={}){
- const password=env.APP_PASSWORD||'',user=env.APP_USER||'minhavoz';if(password.length<12)throw Error('Configure APP_PASSWORD com pelo menos 12 caracteres no servidor.');
+export function createApp({env=process.env,fetchImpl=fetch,now=Date.now,timeoutMs=120000,verifyFirebaseToken}={}){
+ const firebaseMode=env.FIREBASE_AUTH_ENABLED==='true';
+ let firebaseConfig=null, firebaseAuth=null;
+ if(firebaseMode){
+  try{firebaseConfig=JSON.parse(env.FIREBASE_WEB_CONFIG||'');}catch{throw Error('Configure FIREBASE_WEB_CONFIG com o JSON do aplicativo web Firebase.');}
+  if(!firebaseConfig.apiKey||!firebaseConfig.authDomain||!firebaseConfig.projectId||!firebaseConfig.appId||!firebaseConfig.storageBucket)throw Error('FIREBASE_WEB_CONFIG incompleto.');
+  firebaseConfig=Object.fromEntries(['apiKey','authDomain','projectId','appId','storageBucket','messagingSenderId','measurementId'].filter(k=>typeof firebaseConfig[k]==='string').map(k=>[k,firebaseConfig[k]]));
+  const appName='minha-voz-'+firebaseConfig.projectId;
+  const app=getApps().find(a=>a.name===appName)||initializeFirebase({projectId:firebaseConfig.projectId},appName);firebaseAuth=getAuth(app);
+ }
+ const password=env.APP_PASSWORD||'',user=env.APP_USER||'minhavoz';if(!firebaseMode&&password.length<12)throw Error('Configure APP_PASSWORD com pelo menos 12 caracteres no servidor.');
  const limit=Number(env.AI_DAILY_LIMIT||20);if(!Number.isInteger(limit)||limit<1||limit>1000)throw Error('AI_DAILY_LIMIT deve ser um inteiro entre 1 e 1000.');
  const model=env.GEMINI_IMAGE_MODEL||'gemini-nano-banana-2.1';if(!/^[a-z0-9.-]{1,100}$/.test(model))throw Error('GEMINI_IMAGE_MODEL inválido.');
  let day='',used=0,busy=false;const recent=new Map();let loginWindow=0,loginFailures=0;
  return createServer(async(req,res)=>{
   res.setHeader('X-Content-Type-Options','nosniff');res.setHeader('Referrer-Policy','no-referrer');res.setHeader('X-Frame-Options','DENY');res.setHeader('Cache-Control','no-store');
-  res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data:; connect-src 'self'; worker-src 'self' blob:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'");
+  res.setHeader('Content-Security-Policy',"default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://*.googleusercontent.com; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firestore.googleapis.com wss://firestore.googleapis.com https://firebasestorage.googleapis.com https://*.googleapis.com; frame-src https://*.firebaseapp.com https://accounts.google.com; worker-src 'self' blob:; frame-ancestors 'none'; object-src 'none'; base-uri 'self'");
   try{
    const url=new URL(req.url,'http://localhost');
    if(url.pathname==='/healthz'&&req.method==='GET')return send(res,200,{ok:true});
-   if(now()-loginWindow>60000){loginWindow=now();loginFailures=0;}
-   if(loginFailures>=30)throw new ApiError(429,'Muitas tentativas de acesso. Aguarde um minuto.');
-   const expected='Basic '+Buffer.from(user+':'+password).toString('base64');
-   if(!equal(req.headers.authorization||'',expected)){loginFailures++;res.setHeader('WWW-Authenticate','Basic realm="Minha Voz - testes privados", charset="UTF-8"');return send(res,401,{error:'Entre com o usuário e a senha de teste.'});}
+   if(!firebaseMode){
+    if(now()-loginWindow>60000){loginWindow=now();loginFailures=0;}
+    if(loginFailures>=30)throw new ApiError(429,'Muitas tentativas de acesso. Aguarde um minuto.');
+    const expected='Basic '+Buffer.from(user+':'+password).toString('base64');
+    if(!equal(req.headers.authorization||'',expected)){loginFailures++;res.setHeader('WWW-Authenticate','Basic realm="Minha Voz - testes privados", charset="UTF-8"');return send(res,401,{error:'Entre com o usuário e a senha de teste.'});}
+   }
+   if(url.pathname==='/api/firebase-config'&&req.method==='GET')return send(res,200,firebaseMode?{enabled:true,firebase:firebaseConfig}:{enabled:false});
+   if(firebaseMode&&url.pathname==='/api/images/edit'){
+    const token=(req.headers.authorization||'').match(/^Bearer ([A-Za-z0-9._-]+)$/)?.[1];
+    if(!token)throw new ApiError(401,'Entre na sua conta para usar o Gemini.');
+    try{await (verifyFirebaseToken||((t)=>firebaseAuth.verifyIdToken(t)))(token);}catch{throw new ApiError(401,'Sessão inválida ou expirada. Entre novamente.');}
+   }
    if(url.pathname==='/api/config'&&req.method==='GET'){const missingConfig=[];if(!env.GEMINI_API_KEY)missingConfig.push('GEMINI_API_KEY');if(env.AI_ENABLED!=='true')missingConfig.push('AI_ENABLED');return send(res,200,{available:missingConfig.length===0,model,missingConfig});}
    if(url.pathname==='/api/images/edit'){
     if(req.method!=='POST'){res.setHeader('Allow','POST');throw new ApiError(405,'Use POST.');}

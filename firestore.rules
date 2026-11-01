@@ -1,0 +1,25 @@
+rules_version = '2';
+// users/{uid}/projects/{projectId}: title (1–100 chars), updatedAt (server timestamp),
+// path (user/project-scoped JSON object), version (integer 1). All fields required.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() { return request.auth != null; }
+    function isOwner(uid) { return isAuthenticated() && request.auth.uid == uid; }
+    function uidUnchanged(uid) { return uid == request.auth.uid; }
+    function uidNotModified(uid) { return uid == request.auth.uid; }
+    function isValidProject(data, uid, projectId) {
+      return data.keys().hasOnly(['title', 'updatedAt', 'path', 'version'])
+        && data.keys().hasAll(['title', 'updatedAt', 'path', 'version'])
+        && data.title is string && data.title.size() > 0 && data.title.size() <= 100
+        && data.updatedAt is timestamp && data.updatedAt == request.time
+        && data.version == 1
+        && data.path is string && data.path.size() <= 512
+        && data.path.matches('users/' + uid + '/projects/' + projectId + '/[a-f0-9-]{36}\\.json');
+    }
+    match /users/{uid}/projects/{projectId} {
+      allow read, delete: if isOwner(uid);
+      allow create: if isOwner(uid) && uidUnchanged(uid) && isValidProject(request.resource.data, uid, projectId);
+      allow update: if isOwner(uid) && uidNotModified(uid) && isValidProject(request.resource.data, uid, projectId);
+    }
+  }
+}

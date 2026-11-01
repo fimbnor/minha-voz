@@ -71,7 +71,9 @@ $('#ai-generate').onclick=async()=>{
   const image=await aiSource(snapshot);
   const payload={mode:'card',prompt,consent:true,category:state.campaign.id,aspectRatio:state.format==='story'?'9:16':['square','profile','instagram-profile'].includes(state.format)?'1:1':'4:5',image};
   $('#prompt-status').textContent='Card enviado para edição. Aguarde até dois minutos. Não há repetição automática.';
-  const r=await fetch('/api/images/edit',{method:'POST',headers:{'Content-Type':'application/json','X-Request-ID':crypto.randomUUID()},body:JSON.stringify(payload),signal:AbortSignal.timeout(130000)});
+  const headers={'Content-Type':'application/json','X-Request-ID':crypto.randomUUID()};
+  if(window.minhaVozCloud?.isEnabled())headers.Authorization='Bearer '+await window.minhaVozCloud.token();
+  const r=await fetch('/api/images/edit',{method:'POST',headers,body:JSON.stringify(payload),signal:AbortSignal.timeout(130000)});
   const data=await r.json();if(!r.ok)throw Error(data.error||'Não foi possível editar o card.');
   const img=new Image();img.src=`data:${data.image.mimeType};base64,${data.image.data}`;await img.decode();
   renderPreview();
