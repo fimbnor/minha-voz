@@ -68,21 +68,21 @@ test('starting without a model replaces illustrated art with white and keeps use
  const e=await frontend();e.open();e.context.navigateCreation(1);
  const photo={width:500,height:500};e.context.setPagePhoto(e.context.activePage(),photo);
  e.input('#headline','Minha mensagem');e.input('#signature','Minha assinatura');
- e.$('#base-blank').onclick();
+ e.context.chooseBaseColor('#ffffff',{blank:true});
  assert.equal(e.state.backgroundMode,'color');assert.equal(e.state.backgroundColor,'#ffffff');
  assert.equal(e.state.background,null);assert.equal(e.state.photo,photo);
  assert.equal(e.state.text,'Minha mensagem');assert.equal(e.state.signature,'Minha assinatura');
- assert.equal(e.$('#base-blank').attributes.get('aria-pressed'),'true');
+ assert.equal(e.state.backgroundColor,'#ffffff');
  assert.equal(e.$('#model-library').hidden,true);
  assert(e.drawCalls().some(c=>c.op==='fillRect'&&c.color==='#ffffff'));
 });
 
 test('blank starter drops suggested copy; solid starter chooses readable text and survives project restore',async()=>{
  const e=await frontend();e.open();e.context.navigateCreation(1);
- e.$('#base-blank').onclick();assert.equal(e.state.text,'');
+ e.context.chooseBaseColor('#ffffff',{blank:true});assert.equal(e.state.text,'');
  e.$('#background-color').oninput({target:{value:'#183f35'}});
  assert.equal(e.state.textColor,'#fffefa');assert.equal(e.state.backgroundColor,'#183f35');
- assert.equal(e.$('#base-color-options').hidden,false);
+ assert.equal(e.$('#format-step-title').textContent,'Escolha o formato');
  const saved=e.context.projectPage(e.context.activePage());
  await e.context.restoreProject({version:1,id:'solid',pages:[saved],format:'story',step:1,edits:[]});
  assert.equal(e.state.backgroundMode,'color');assert.equal(e.state.backgroundColor,'#183f35');
@@ -95,14 +95,14 @@ test('the original illustrated cards are selectable and the same template can re
  assert.equal(e.$('#illustrated-template-list').children.length,illustrated.length);
  e.$('#illustrated-template-list').children[0].onclick();
  assert.equal(e.state.campaign.id,illustrated[0].id);
- e.$('#base-blank').onclick();e.change('#background-mode','image');
+ e.context.chooseBaseColor('#ffffff',{blank:true});e.change('#background-mode','image');
  assert.equal(e.state.backgroundMode,'image');assert.equal(e.state.campaign.id,illustrated[0].id);
  assert.equal(e.$('#model-library').hidden,false);
 });
 
 test('initial carousel bases apply to starter pages and later changes stay on the current page',async()=>{
  const e=await frontend();e.open();e.change('#format','carousel');e.context.navigateCreation(1);
- e.$('#base-blank').onclick();assert(e.state.pages.every(p=>p.backgroundColor==='#ffffff'&&p.backgroundMode==='color'&&p.text===''));
+ e.context.chooseBaseColor('#ffffff',{blank:true});assert(e.state.pages.every(p=>p.backgroundColor==='#ffffff'&&p.backgroundMode==='color'&&p.text===''));
  e.context.navigateCreation(2);e.context.navigateCreation(1);
  e.context.chooseBaseColor('#e7c746');
  assert.equal(e.state.pages[0].backgroundColor,'#e7c746');assert.equal(e.state.pages[1].backgroundColor,'#ffffff');
@@ -110,7 +110,7 @@ test('initial carousel bases apply to starter pages and later changes stay on th
 
 test('solid backgrounds skip models in both directions and image selection restores that step',async()=>{
  const e=await frontend();e.open();e.change('#background-mode','color');
- assert.equal(e.$('#base-color-options').hidden,false);assert.equal(e.$('#model-navigation-step').hidden,true);
+ assert.equal(e.$('#format-step-title').textContent,'Escolha o formato');assert.equal(e.$('#model-navigation-step').hidden,true);
  assert.match(e.$('#flow-progress').textContent,/Etapa 1 de 5/);
  for(const step of [2,3,6,4]){e.$('#flow-next').onclick();assert.equal(e.state.step,step);}
  for(const step of [6,3,2,0]){e.$('#flow-back').onclick();assert.equal(e.state.step,step);}
@@ -121,7 +121,7 @@ test('solid backgrounds skip models in both directions and image selection resto
 
 test('initial solid colors and palette choices initialize carousel pages without overwriting later page edits',async()=>{
  const e=await frontend();e.open();e.change('#format','carousel');e.change('#background-mode','color');
- e.$('#palette').children[3].onclick();assert(e.state.pages.every(p=>p.backgroundColor==='#b96d5a'&&p.backgroundMode==='color'));
+ e.context.chooseBaseColor('#b96d5a',{preserveColors:true});assert(e.state.pages.every(p=>p.backgroundColor==='#b96d5a'&&p.backgroundMode==='color'));
  e.$('#flow-next').onclick();assert.equal(e.state.step,2);
  e.context.navigateCreation(0);e.input('#background-color','#123456');
  assert.equal(e.state.pages[0].backgroundColor,'#123456');assert.equal(e.state.pages[1].backgroundColor,'#b96d5a');
@@ -151,7 +151,7 @@ test('home solid-color entry starts without suggested copy and skips the model s
  assert.equal(e.$('#campaign-grid').children.length,7);
  e.$('#campaign-grid').children[0].onclick();
  assert.equal(e.state.backgroundMode,'color');assert.equal(e.state.text,'');assert.equal(e.state.step,0);
- assert.equal(e.$('#base-color-options').hidden,false);
+ assert.equal(e.$('#format-step-title').textContent,'Escolha o formato');
  e.change('#format','story');e.input('#background-color','#e7c746');
  e.$('#flow-next').onclick();assert.equal(e.state.step,2);assert.equal(e.state.backgroundColor,'#e7c746');
  e.$('#flow-back').onclick();assert.equal(e.state.backgroundMode,'color');

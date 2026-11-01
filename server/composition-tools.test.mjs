@@ -43,14 +43,14 @@ test('style filters use Fotos, Banners and Montagens and combine with unique cat
 test('palette and custom solid color replace image backgrounds without changing text or signature colors',async()=>{
  const e=await frontend();e.open(1);e.finishBackground(e.state.campaign);
  const textColor=e.state.textColor,signatureColor=e.state.signatureColor;
- e.$('#palette').children[3].onclick();assert.equal(e.state.backgroundMode,'color');assert.equal(e.state.backgroundColor,'#b96d5a');
+ e.context.chooseBaseColor('#b96d5a',{preserveColors:true});assert.equal(e.state.backgroundMode,'color');assert.equal(e.state.backgroundColor,'#b96d5a');
  assert.equal(e.state.textColor,textColor);assert.equal(e.state.signatureColor,signatureColor);
  assert(e.drawCalls().some(c=>c.op==='fillRect'&&c.color==='#b96d5a'));assert(!e.drawCalls().some(c=>c.op==='drawImage'));
  e.input('#background-color','#123456');assert(e.drawCalls().some(c=>c.op==='fillRect'&&c.color==='#123456'));
  e.$('#remove-background').onclick();assert.equal(e.state.backgroundMode,'image');assert(e.drawCalls().some(c=>c.op==='drawImage'));
 });
 test('photo format exposes the chosen solid background behind the uploaded photo',async()=>{
- const e=await frontend();e.open(0);e.change('#format','photo');const image={width:200,height:200};e.context.setPagePhoto(e.context.activePage(),image);e.$('#palette').children[2].onclick();
+ const e=await frontend();e.open(0);e.change('#format','photo');const image={width:200,height:200};e.context.setPagePhoto(e.context.activePage(),image);e.context.chooseBaseColor('#e7c746',{preserveColors:true});
  const calls=e.drawCalls();assert(calls.some(c=>c.op==='fillRect'&&c.color==='#e7c746'));assert(calls.some(c=>c.op==='drawImage'&&c.args[0]===image));
  assert(calls.some(c=>c.op==='rotate')); // A framed photo leaves the selected background visible.
 });

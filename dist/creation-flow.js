@@ -4,8 +4,8 @@ const CREATION_LABELS={0:'Formato',1:'Fundo',2:'Foto e logotipo',3:'Texto e assi
 function creationOrder(){return state.backgroundMode==='color'?[0,2,3,6,4]:[0,1,2,3,6,4];}
 function syncFlowUI(){
  const order=creationOrder(),step=Number(state.step),position=order.indexOf(step);
- $('#format-step-title').textContent=state.backgroundMode==='color'?'Formato e cor':'Escolha o formato';
- $('#format-intro').textContent=state.backgroundMode==='color'?'Escolha o formato e a cor do seu card.':'Escolha onde vai usar seu card.';
+ $('#format-step-title').textContent='Escolha o formato';
+ $('#format-intro').textContent='Escolha onde vai usar seu card.';
  $('#flow-progress').textContent=`Etapa ${position+1} de ${order.length} · ${CREATION_LABELS[step]}`;
  if(step===6)$('#ai-edit-options').open=true;
  $('#flow-back').hidden=step===0;
@@ -35,8 +35,6 @@ syncFlowUI();
 function syncBaseOptions(){
  const solid=state.backgroundMode==='color',blank=solid&&state.backgroundColor.toLowerCase()==='#ffffff';
  $('#model-library').hidden=solid;
- $('#base-color-options').hidden=!solid;
- $('#base-blank').setAttribute('aria-pressed',String(blank));
  $('#base-choice-status').textContent=blank?'Base branca, sem modelo. Adicione sua foto e mensagem nas próximas etapas.':solid?'Sua foto e seus textos serão combinados com essa cor. A próxima etapa é Foto e logotipo.':'Na próxima etapa, escolha um modelo ou envie sua própria imagem de fundo.';
  syncFlowUI();
 }
@@ -50,7 +48,7 @@ function chooseBaseColor(color,{blank=false,preserveColors=false}={}){
   if(!preserveColors&&!page.textColorCustom)page.textColor=contrast;
   if(!preserveColors&&!page.signatureColorCustom)page.signatureColor=contrast;
  }
- syncEditorFields();renderOptions();renderPalette();renderPreview();
+ syncEditorFields();renderOptions();renderPreview();
 }
 function renderBaseOptions(){
  syncBaseOptions();
@@ -61,7 +59,6 @@ function renderBaseOptions(){
   b.onclick=()=>selectCampaign(c);list.append(b);drawCard(b.querySelector('canvas'),c,{format:state.format});
  }
 }
-$('#base-blank').onclick=()=>chooseBaseColor('#ffffff',{blank:true});
 renderBaseOptions();
 
 // A layered thumbnail shows the chosen base underneath the user's photo.
