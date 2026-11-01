@@ -8,14 +8,14 @@ const encode=value=>Buffer.from(value).toString('base64');
 const tick=()=>new Promise(resolve=>setImmediate(resolve));
 async function editor(){
  const nodes=new Map(),requests=[],messages=[];
- const $=id=>{if(!nodes.has(id))nodes.set(id,{value:'',checked:false,hidden:true,disabled:false,textContent:'',setAttribute(){},removeAttribute(name){delete this[name];},scrollIntoView(){},focus(){}});return nodes.get(id);};
+ const $=id=>{if(!nodes.has(id))nodes.set(id,{value:'',checked:false,hidden:true,disabled:false,textContent:'',classList:{add(){},remove(){}},animate(){},setAttribute(){},removeAttribute(name){delete this[name];},scrollIntoView(){},focus(){}});return nodes.get(id);};
  $('#ai-prompt').value='Troque apenas a cor do fundo';$('#ai-consent').checked=true;
  const state={campaign:{id:'amor-declaracao',backgroundUrl:'/amor.png'},format:'feed',slide:0,text:'Minha frase',signature:'@perfil',photo:{name:'foto com recorte e luz ajustada'},logo:{name:'marca'},background:{name:'fundo escolhido'},scale:110,x:5,y:10,cutout:true,palette:2};
  const preview=$('#preview-canvas');preview.width=1080;preview.height=1350;
  const backgrounds=new Map([['/amor.png',{decode:async()=>{}}]]);
  let context,respond=async()=>({image:{mimeType:'image/png',data:encode('card editado '+requests.length)}});
  const document={fonts:{ready:Promise.resolve()},createElement(tag){assert.equal(tag,'canvas');return {width:0,height:0,bytes:'',getContext(){return {drawImage:(image)=>{this.bytes=image.bytes;}};},toDataURL(){return 'data:image/png;base64,'+this.bytes;}};}};
- context=vm.createContext({$,state,document,window:{addEventListener(){}},backgroundCache:backgrounds,catalogBackground(){},waitForCardAssets:async()=>{await document.fonts.ready;},toast:message=>messages.push(message),crypto,AbortSignal,Image:class{async decode(){}},renderPreview(){context.syncAICard();preview.bytes=state.aiCard?state.aiCard.src.split(',')[1]:encode(JSON.stringify({text:state.text,signature:state.signature,photo:state.photo,logo:state.logo,background:state.background,scale:state.scale,x:state.x,y:state.y}));},fetch:async(url,options)=>{
+ context=vm.createContext({$,state,document,matchMedia:()=>({matches:true}),window:{addEventListener(){}},backgroundCache:backgrounds,catalogBackground(){},waitForCardAssets:async()=>{await document.fonts.ready;},toast:message=>messages.push(message),crypto,AbortSignal,Image:class{async decode(){}},renderPreview(){context.syncAICard();preview.bytes=state.aiCard?state.aiCard.src.split(',')[1]:encode(JSON.stringify({text:state.text,signature:state.signature,photo:state.photo,logo:state.logo,background:state.background,scale:state.scale,x:state.x,y:state.y}));},fetch:async(url,options)=>{
   if(url==='/api/config')return {ok:true,json:async()=>({available:true})};
   assert.equal(url,'/api/images/edit');requests.push(JSON.parse(options.body));return {ok:true,json:async()=>respond()};
  }});
@@ -88,3 +88,4 @@ test('approved full cards render once without duplicate text, photos, background
   assert.equal(calls.some(([method])=>method==='fillText'),false);assert.equal(calls.some(([method])=>method==='clip'),format==='instagram-profile');
  }
 });
+

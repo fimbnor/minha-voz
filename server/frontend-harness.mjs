@@ -17,6 +17,12 @@ export async function frontend({reducedMotion=true}={}){
  const $=id=>{if(!nodes.has(id))nodes.set(id,element());return nodes.get(id);};
  const list=(attribute)=>[...html.matchAll(new RegExp(attribute+'="([^\"]+)"','g'))].map(([,value])=>Object.assign(element(),{dataset:{[attribute.slice(5)]:value}}));
  const selectors=new Map([['[data-hero]',list('data-hero')],['[data-filter]',list('data-filter')],['[data-step]',list('data-step')],['[data-panel]',list('data-panel')],['[data-nav]',list('data-nav')]]);
+ const groups=[...html.matchAll(/<div class="option-grid"[^>]*data-choice-group="([^"]+)"[^>]*>(.*?)<\/div>/g)].map(([,id,body])=>{
+  const group=element();group.dataset.choiceGroup=id;
+  const buttons=[...body.matchAll(/data-choice="([^"]+)"/g)].map(([,value])=>{const b=element();b.dataset.choice=value;return b;});
+  group.querySelectorAll=()=>buttons;return group;
+ });
+ selectors.set('[data-choice-group]',groups);
  class Image{
   constructor(){this.width=1080;this.height=1350;this.complete=false;this.naturalWidth=0;this.pending=[];images.push(this);}
   decode(){return this.complete?this.naturalWidth?Promise.resolve():Promise.reject(Error('Image failed')):new Promise((resolve,reject)=>this.pending.push({resolve,reject}));}
@@ -24,7 +30,7 @@ export async function frontend({reducedMotion=true}={}){
   fail(){this.complete=true;this.onerror?.();this.pending.forEach(p=>p.reject(Error('Image failed')));this.pending=[];}
  }
  const window={innerHeight:844,addEventListener(){}};
- const context=vm.createContext({document:{addEventListener(){},querySelector:$,querySelectorAll:selector=>selectors.get(selector)||[],createElement:element,body:element(),fonts:{ready:Promise.resolve()}},window,Image,localStorage:{getItem:()=>null,setItem(){}},matchMedia:()=>media,setTimeout:(fn,delay)=>{timers.set(++timerId,{fn,delay});return timerId;},clearTimeout:id=>timers.delete(id),requestAnimationFrame:fn=>{frames.set(++frameId,fn);return frameId;},cancelAnimationFrame:id=>frames.delete(id),fetch:async()=>({ok:true,json:async()=>({available:false,missingConfig:['GEMINI_API_KEY']})}),AbortSignal,crypto});
+ const context=vm.createContext({document:{addEventListener(){},querySelector:$,querySelectorAll:selector=>selectors.get(selector)||[],createElement:element,body:element(),fonts:{ready:Promise.resolve(),load:async()=>[]}},window,Image,localStorage:{getItem:()=>null,setItem(){}},matchMedia:()=>media,setTimeout:(fn,delay)=>{timers.set(++timerId,{fn,delay});return timerId;},clearTimeout:id=>timers.delete(id),requestAnimationFrame:fn=>{frames.set(++frameId,fn);return frameId;},cancelAnimationFrame:id=>frames.delete(id),fetch:async()=>({ok:true,json:async()=>({available:false,missingConfig:['GEMINI_API_KEY']})}),AbortSignal,crypto});
  for(const [,src] of html.matchAll(/<script src="([^"]+)"/g))vm.runInContext(readFileSync(new URL(src.replace(/^\//,''),root),'utf8'),context,{filename:src});
  await new Promise(resolve=>setImmediate(resolve));
  return {$,context,images,selectors,timers,media,tick(){const [id,timer]=[...timers][0];timers.delete(id);timer.fn();},state:vm.runInContext('state',context),campaigns:vm.runInContext('campaigns',context),element,
@@ -37,4 +43,5 @@ export async function frontend({reducedMotion=true}={}){
   setUpload(fn){context.loadUpload=fn;},
   upload(id,files){const node=$(id);node.files=files;return node.onchange({target:node});}};
 }
+
 

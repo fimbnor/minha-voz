@@ -11,7 +11,7 @@ function drawInstagramProfile(canvas,c,opts){
  drawCardBackground(ctx,w,h,c,opts);
  if(opts.photo){
   const zoom=(opts.scale||100)/100,dx=w*(opts.x||0)/200,dy=h*(opts.y||0)/200;
-  ctx.save();if(opts.gray)ctx.filter='grayscale(1)';
+  ctx.save();ctx.translate(w*.5+dx,h*.45+dy);ctx.rotate((opts.rotation||0)*Math.PI/180);ctx.translate(-w*.5-dx,-h*.45-dy);if(opts.gray)ctx.filter='grayscale(1)';
   if(opts.cutout){
    const fit=Math.min(w*.76/opts.photo.width,h*.72/opts.photo.height)*zoom;
    ctx.drawImage(opts.photo,(w-opts.photo.width*fit)/2+dx,h*.49-opts.photo.height*fit/2+dy,opts.photo.width*fit,opts.photo.height*fit);
@@ -25,7 +25,7 @@ function drawInstagramProfile(canvas,c,opts){
  const shade=ctx.createLinearGradient(0,h*.66,0,h*.96);shade.addColorStop(0,shadeColor+'00');shade.addColorStop(.45,shadeColor+'dd');shade.addColorStop(1,shadeColor+'f5');ctx.fillStyle=shade;ctx.fillRect(0,h*.66,w,h*.34);
  const text=opts.text??c.text,maxWidth=w*.52;
  let fontSize=w*.052*(opts.textSize||100)/100,lines;
- do{ctx.font=(opts.font==='bold'?'700 ':'')+fontSize+'px '+(opts.font==='bold'?'Arial':'Georgia');lines=wrap(ctx,text,maxWidth);if(lines.length<=3)break;fontSize-=w*.002;}while(fontSize>w*.020);
+ do{ctx.font=cardFont(opts.font,fontSize);lines=wrap(ctx,text,maxWidth);if(lines.length<=3)break;fontSize-=w*.002;}while(fontSize>w*.020);
  lines=lines.slice(0,3);ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=opts.textColor||c.textColor||'#fff8e6';
  const top=h*.79;
  lines.forEach((line,i)=>ctx.fillText(line,w*.5,top+i*fontSize*1.08,maxWidth));
@@ -38,3 +38,4 @@ function drawInstagramProfile(canvas,c,opts){
  }
  ctx.strokeStyle=p.accent;ctx.lineWidth=w*.018;ctx.beginPath();ctx.arc(w/2,h/2,r-w*.018,0,Math.PI*2);ctx.stroke();ctx.restore();
 }
+

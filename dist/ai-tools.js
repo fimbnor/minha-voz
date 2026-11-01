@@ -1,7 +1,7 @@
 'use strict';
 let aiReady=false,aiRunning=false,aiCandidate=null;
 const aiEdits=new Map();
-const aiLayerKeys=['pageId','campaign','palette','photo','background','backgroundMode','backgroundColor','textColor','signatureColor','signaturePlate','format','text','signature','scale','x','y','gray','font','textSize','cutout','logo','logoSize','logoPosition','logoOpacity','logoPlate'];
+const aiLayerKeys=['pageId','campaign','palette','photo','background','backgroundMode','backgroundColor','textColor','signatureColor','signaturePlate','format','text','signature','scale','x','y','rotation','gray','font','textSize','cutout','logo','logoSize','logoPosition','logoOpacity','logoPlate'];
 function aiScope(){return JSON.stringify([state.pageId||state.campaign.id,state.format,state.pageId?0:state.format==='carousel'?state.slide:0]);}
 function resetAIEdits(){aiEdits.clear();clearAICandidate();state.aiCard=null;}
 function carryAICardToFormat(image){const scope=aiScope();if(image)aiEdits.set(scope,{image,layers:aiLayers(),previous:aiEdits.get(scope)||null});else aiEdits.delete(scope);state.aiCard=image||null;}
@@ -63,8 +63,8 @@ async function aiSource(snapshot){
 $('#ai-generate').onclick=async()=>{
  if(!aiReady||aiRunning)return;
  const prompt=$('#ai-prompt').value.trim();
+ if(!$('#ai-consent').checked){highlightAIConsent();return;}
  if(!prompt){aiNotice('Descreva o que deseja mudar no card atual.','#ai-prompt');return;}
- if(!$('#ai-consent').checked){aiNotice('Autorize o envio do card ao Google para continuar.','#ai-consent');return;}
  renderPreview();const snapshot=aiSnapshot();
  aiRunning=true;$('#ai-generate').setAttribute('aria-busy','true');clearAICandidate();$('#ai-generate').disabled=true;$('#ai-generate').textContent='Editando… aguarde';$('#prompt-status').textContent='Preparando o card atual. A edição pode levar até dois minutos.';
  try{
@@ -94,3 +94,11 @@ $('#ai-undo').onclick=()=>{
  clearAICandidate();renderPreview();toast('Edição por IA desfeita.');
 };
 syncAICard();checkAI();
+
+
+function highlightAIConsent(){
+ const panel=$('#ai-consent-panel'),checkbox=$('#ai-consent');
+ $('#ai-consent-alert').hidden=false;panel.classList.add('consent-required');checkbox.setAttribute('aria-invalid','true');
+ panel.scrollIntoView({block:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});checkbox.focus({preventScroll:true});
+ if(!matchMedia('(prefers-reduced-motion: reduce)').matches)checkbox.animate([{transform:'scale(1)'},{transform:'scale(1.35)',offset:.5},{transform:'scale(1)'}],{duration:450,iterations:2});
+}

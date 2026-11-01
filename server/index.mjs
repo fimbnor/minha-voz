@@ -112,7 +112,7 @@ export function createApp({env=process.env,fetchImpl=fetch,now=Date.now,timeoutM
    const pathname=decodeURIComponent(url.pathname),file=path.resolve(ROOT,'.'+(pathname==='/'?'/index.html':pathname));
    if(!file.startsWith(ROOT)||pathname.split('/').some(x=>x.startsWith('.')))throw new ApiError(404,'Arquivo não encontrado.');
    let contents;try{contents=await readFile(file);}catch{throw new ApiError(404,'Arquivo não encontrado.');}
-   const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.png':'image/png','.jpg':'image/jpeg','.wasm':'application/wasm','.tflite':'application/octet-stream'}[path.extname(file)]||'application/octet-stream';
+   const mime={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.mjs':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.woff':'font/woff','.png':'image/png','.jpg':'image/jpeg','.wasm':'application/wasm','.tflite':'application/octet-stream'}[path.extname(file)]||'application/octet-stream';
    res.writeHead(200,{'Content-Type':mime});res.end(req.method==='HEAD'?undefined:contents);
   }catch(e){if(!res.headersSent)send(res,e instanceof ApiError?e.status:500,{error:e instanceof ApiError?e.message:'Erro interno. Tente novamente mais tarde.'});else res.end();}
  });
@@ -122,3 +122,4 @@ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  const server=createApp();server.requestTimeout=150000;server.listen(Number(process.env.PORT||3000),'0.0.0.0',()=>console.log('Minha Voz iniciado.'));
  process.on('SIGTERM',()=>{server.close();setTimeout(()=>process.exit(0),10000).unref();});
 }
+
