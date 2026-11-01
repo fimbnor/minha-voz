@@ -231,3 +231,37 @@ button,a,[role="button"]{touch-action:manipulation}
 .preview-resize-handle:focus-visible{outline:2px solid #315f47;outline-offset:-3px}
 .editor-back{margin:0 0 14px}
 @media(prefers-reduced-motion:reduce){.preview-resize-handle span{transition:none}}
+
+/* Compact home banner and readable catalog controls. */
+.hero{min-height:360px;padding-top:30px;padding-bottom:54px}
+.hero h1{font-size:clamp(34px,3.8vw,56px);margin-bottom:16px}
+.hero-copy>p{margin-bottom:16px}
+.hero-art{height:280px}
+.hero-card{width:200px;height:250px}
+.hero-outline{width:208px;height:260px}
+.hero #hero-cta{height:32px;padding:0 10px}
+.hero-playback{gap:3px;bottom:13px}
+.hero-playback button{width:28px;height:28px;font-size:16px;border-color:#ffffff1a;color:#b8cabb}
+.hero-playback svg{width:11px;height:11px}
+.topic-shortcuts button{font-size:12px;padding:5px 8px}
+.filters .filter{font-size:12px;padding:8px 12px}
+.filters{flex-wrap:wrap;margin-bottom:12px}
+.campaign-section>.search{width:100%;margin:0 0 20px}
+.campaign-section>.search input{width:100%;min-width:0}
+@media(min-width:1450px){.hero-art{height:300px}.hero-card{width:216px;height:270px}.hero-outline{width:224px;height:280px}}
+@media(max-width:1100px) and (min-width:701px){.hero{padding-top:26px;min-height:330px}.hero h1{font-size:38px}.hero-art{height:250px}.hero-card{width:176px;height:220px}.hero-outline{width:184px;height:230px}}
+@media(max-width:700px){
+ .hero{min-height:0;padding:22px 24px 52px;gap:8px}
+ .hero h1{font-size:clamp(29px,8.2vw,34px);letter-spacing:-1.4px;margin-bottom:10px}
+ .hero-copy>p{margin-bottom:8px}
+ .hero-art{height:200px;margin:0 0 6px}
+ .hero-card{width:140px;height:175px}
+ .hero-outline{width:148px;height:185px}
+ .hero-glow{width:220px;height:220px}
+ .hero #hero-cta{height:30px;padding:0 10px;bottom:13px}
+ .topic-shortcuts button{font-size:14px;padding:6px 9px;gap:5px}
+}
+@media(max-width:580px){
+ .filters .filter{font-size:14px;padding:8px 7px}
+ .filters .filter>span{font-size:12px}
+}
