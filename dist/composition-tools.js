@@ -50,6 +50,7 @@ async function uploadCarouselPhotos(e){
 }
 function drawCardBackground(ctx,w,h,c,opts={}){
  if(opts.backgroundMode==='color'){ctx.fillStyle=opts.backgroundColor||palettes[opts.palette??c.color].bg;ctx.fillRect(0,0,w,h);return;}
+ if(c.nativeScene&&!opts.background){scene(ctx,w,h,c,palettes[opts.palette??c.color]);return;}
  const image=opts.background||catalogBackground(c);
  if(image){drawCover(ctx,image,0,0,w,h);return;}
  ctx.fillStyle='#edf0e5';ctx.fillRect(0,0,w,h);
@@ -64,7 +65,7 @@ function drawSignature(ctx,w,h,opts,{x=w*.0764,y=h-w*.0486,center=false,maxWidth
 }
 async function waitForCardAssets(){
  await document.fonts.ready;
- if(state.aiCard||state.backgroundMode==='color'||state.background)return;
+ if(state.aiCard||state.campaign.nativeScene||state.backgroundMode==='color'||state.background)return;
  catalogBackground(state.campaign);const image=backgroundCache.get(state.campaign.backgroundUrl);
  if(image)await image.decode();
 }

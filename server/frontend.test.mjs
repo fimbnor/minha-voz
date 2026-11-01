@@ -13,7 +13,7 @@ test('the shipped catalog and browser scripts initialize the editor and all bann
  const context=vm.createContext({document:{querySelector:$,querySelectorAll:selector=>selector==='[data-hero]'?heroButtons:[],createElement:()=>element(),body:element()},window:{addEventListener(){}},localStorage:{getItem:()=>null},Image:class{complete=false;},matchMedia:()=>({matches:true}),setTimeout,clearTimeout,requestAnimationFrame:fn=>setTimeout(fn,0),cancelAnimationFrame:clearTimeout,fetch:async()=>({ok:true,json:async()=>({available:false,missingConfig:['GEMINI_API_KEY']})}),AbortSignal});
  for(const file of ['profile-tools.js','catalogo-minha-voz/catalogo.js','composition-tools.js','app.js','photo-tools.js','logo-tools.js','ai-tools.js','editor-tools.js'])vm.runInContext(readFileSync(new URL(file,root),'utf8'),context,{filename:file});
  await new Promise(resolve=>setImmediate(resolve));
- assert.equal($('#campaign-grid').children.length,context.window.MINHA_VOZ_CATALOG.templates.length);
+ assert.equal($('#campaign-grid').children.length,context.window.MINHA_VOZ_CATALOG.templates.length+12);
  for(const button of heroButtons){
   assert(context.window.MINHA_VOZ_CATALOG.templates.some(c=>c.id===button.dataset.hero));
   button.onclick();$('#hero-cta').onclick();assert.equal($('#editor').open,true);

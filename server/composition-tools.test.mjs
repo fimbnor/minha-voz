@@ -1,5 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+test('restored montages draw and export without loading an image, including circular profiles',async()=>{
+ const e=await frontend(),originals=e.campaigns.filter(c=>c.nativeScene);
+ assert.equal(originals.length,12);
+ assert(originals.every(c=>c.imageStyle==='montage'));
+ assert.equal(new Set(e.campaigns.map(c=>c.id)).size,e.campaigns.length);
+ assert.equal(e.$('#all-count').textContent,e.campaigns.length);
+ for(const c of originals){
+  e.context.openEditor(c);
+  assert(e.drawCalls().some(call=>call.op==='ellipse')); // Original illustrated background, rather than the image-loading placeholder.
+  assert(!e.images.some(image=>image.src===undefined));
+  await e.context.canvasBlob();
+  e.change('#format','instagram-profile');
+  assert(e.drawCalls().some(call=>call.op==='clip'));
+  await e.context.canvasBlob();
+ }
+ e.input('#background-color','#123456');
+ assert(e.drawCalls().some(call=>call.op==='fillRect'&&call.color==='#123456'));
+});
 import {frontend} from './frontend-harness.mjs';
 
 test('category menus contain one entry per category and each entry has a real icon',async()=>{
@@ -20,7 +38,7 @@ test('style filters use Fotos, Banners and Montagens and combine with unique cat
  }
  filters.find(b=>b.dataset.filter==='photo').onclick();
  e.$('#category-shortcuts').children.find(b=>b.dataset.topic==='Viagens').onclick();assert.equal(e.$('#campaign-grid').children.length,2);
- e.$('#reset-filters').onclick();assert.equal(e.$('#campaign-grid').children.length,24);
+ e.$('#reset-filters').onclick();assert.equal(e.$('#campaign-grid').children.length,e.campaigns.length);
 });
 test('palette and custom solid color replace image backgrounds without changing text or signature colors',async()=>{
  const e=await frontend();e.open(1);e.finishBackground(e.state.campaign);
