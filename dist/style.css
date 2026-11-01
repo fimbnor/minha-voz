@@ -389,28 +389,38 @@ details[open]>summary::after{content:'−'}
  #editor .editor-header-actions button{white-space:nowrap}
  #editor .editor-header h2{font-size:20px}
 }
-/* Floating live preview uses no layout space. Its artwork lets touches pass through. */
-.floating-preview{display:none}
+/* Mobile preview opens from the editing box and resizes over the workspace. */
+.floating-preview,.workspace-preview-toolbar{display:none}
 @media(max-width:580px),(max-width:900px) and (max-height:500px){
  #editor .editor-shell{position:relative}
- #editor .preview-area,#editor:not(.choosing-format) .preview-area{display:none}
- #editor .floating-preview{display:block;position:absolute;right:12px;bottom:86px;z-index:6;pointer-events:none;max-width:calc(100% - 24px)}
- #editor.choosing-format .floating-preview{display:none}
- #floating-preview-toggle{pointer-events:auto;display:flex;gap:10px;padding:8px 14px 8px 8px;min-height:48px;border:1px solid #b7c9aa;border-radius:14px;background:#fafbf6;color:#213f33;box-shadow:0 4px 18px #122d2530;font-size:14px}
- #floating-preview-toggle[hidden],#floating-preview-panel[hidden]{display:none}
- #floating-preview-thumb{display:block;width:auto;max-width:48px;height:48px;object-fit:contain;border-radius:3px}
- #floating-preview-panel{width:240px;max-width:100%;display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
- .floating-preview-bar,.floating-preview-settings{pointer-events:auto;width:100%;background:#fafbf6;border:1px solid #b7c9aa;border-radius:10px;box-shadow:0 3px 14px #122d2520;padding:6px 8px}
- .floating-preview-bar{display:flex;justify-content:space-between;gap:4px}
- .floating-preview-bar button,.floating-preview-settings button{min-height:36px;padding:6px;background:transparent;color:#234e3c;font-size:12px}
+ #editor .preview-area{display:none}
+ .workspace-preview-toolbar{display:flex;justify-content:flex-end;position:sticky;top:-18px;z-index:4;margin:-6px 0 12px;padding:6px 0;background:#fafbf6}
+ #editor.choosing-format .workspace-preview-toolbar{display:none}
+ #floating-preview-toggle{display:flex;min-height:40px;padding:9px 15px;border:1px solid #b7c9aa;border-radius:8px;background:#fafbf6;color:#213f33;font-size:13px}
+ #editor .floating-preview{display:block;position:absolute;z-index:8;pointer-events:none}
+ #floating-preview-panel[hidden]{display:none}
+ #floating-preview-panel{position:relative;display:block;width:var(--floating-width,240px);height:var(--floating-height,300px);pointer-events:none}
+ #floating-preview-canvas{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;box-shadow:0 3px 18px #122d2538}
+ .floating-preview-bar{position:absolute;top:4px;right:4px;display:flex;gap:3px;z-index:2;pointer-events:auto;background:#fafbf6ed;border-radius:7px;box-shadow:0 2px 8px #122d2520}
+ .floating-preview-bar button{min-height:32px;padding:6px 8px;background:transparent;color:#234e3c;font-size:12px}
  #floating-preview-move{cursor:move;touch-action:none}
- #floating-preview-canvas{display:block;width:auto;max-width:100%;height:auto;max-height:min(260px,calc(var(--editor-height,100dvh)*.34));box-shadow:0 3px 12px #122d2520;pointer-events:none}
- .floating-preview-settings{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 8px}
- .floating-preview-settings label{grid-column:1;font-size:12px;color:#234e3c}
- .floating-preview-settings output{font-variant-numeric:tabular-nums}
- .floating-preview-settings input{grid-column:1;width:100%;min-height:32px;margin:0;accent-color:#234e3c}
- #floating-preview-full{grid-column:2;grid-row:1 / 3}
- #editor.editing-text .floating-preview,#editor.compact-editor .floating-preview{bottom:12px}
- #editor .editor-controls{padding-bottom:110px}
+ .floating-preview-settings{position:absolute;bottom:10px;right:10px;width:200px;max-width:calc(100% - 20px);display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center;pointer-events:auto;background:#fafbf6ed;padding:7px 10px;border-radius:8px}
+ .floating-preview-settings label{font-size:12px;color:#234e3c;grid-column:1}
+ .floating-preview-settings input{grid-column:1;width:100%;min-height:30px;accent-color:#234e3c;margin:0}
+ #floating-preview-full{grid-column:2;grid-row:1 / 3;min-height:32px;background:transparent;color:#234e3c;font-size:12px;padding:4px}
+ .preview-corner{position:absolute;width:32px;height:32px;background:transparent;pointer-events:auto;touch-action:none;padding:0;z-index:3}
+ .preview-corner::after{content:'';position:absolute;width:14px;height:14px;border-color:#234e3c;border-style:solid;background:#fafbf6b3}
+ .preview-corner-sw{left:-6px;bottom:-6px;cursor:nesw-resize}.preview-corner-sw::after{border-width:0 0 3px 3px}
+ .preview-corner-se{right:-6px;bottom:-6px;cursor:nwse-resize}.preview-corner-se::after{border-width:0 3px 3px 0}
+ .preview-corner-nw{left:-6px;top:-6px;cursor:nwse-resize}.preview-corner-nw::after{border-width:3px 0 0 3px}
+ .preview-corner-ne{right:-6px;top:-6px;cursor:nesw-resize}.preview-corner-ne::after{border-width:3px 3px 0 0}
+ .small-floating-preview .floating-preview-settings,.small-floating-preview #floating-preview-move{display:none}
+ .small-floating-preview .floating-preview-bar{top:2px;right:2px}
+ .small-floating-preview #floating-preview-close{min-height:28px;font-size:10px;padding:3px}
  #editor #view-card{display:none}
+ #editor .editor-controls{padding-bottom:28px}
+}
+@media(max-width:580px),(max-width:900px) and (max-height:500px){
+ .floating-preview-bar{right:26px}
+ .small-floating-preview .floating-preview-bar{right:24px}
 }
