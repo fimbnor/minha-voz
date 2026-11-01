@@ -457,7 +457,6 @@ details[open]>summary::after{content:'−'}
  .small-floating-preview .preview-corner{display:none}
 }
 .solid-color-swatch{width:16px;height:16px;flex:none;border-radius:4px;background:#78947a;border:1px solid #234e3c44}
-.creation-entry #start-solid{min-height:44px;gap:8px}
 .photo-layer-illustration{position:relative;display:block;width:112px;height:96px;margin:0 auto 10px}
 .photo-layer-illustration #photo-base-thumb{position:absolute;left:3px;top:0;width:auto;max-width:76px;height:82px;border:3px solid #fff;border-radius:4px;box-shadow:0 3px 8px #234e3c25;object-fit:contain;transform:rotate(-7deg)}
 .photo-layer-tile{position:absolute;right:0;bottom:0;width:61px;height:70px;display:flex;align-items:center;justify-content:center;border:3px solid #fff;border-radius:4px;box-shadow:0 3px 8px #234e3c30;background:#e4eedc;transform:rotate(6deg);overflow:hidden}
@@ -467,8 +466,8 @@ details[open]>summary::after{content:'−'}
 /* Keep the primary home actions together, including on narrow phones. */
 .creation-entry{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:460px;gap:10px}
 .creation-entry #start-creation,.creation-entry #open-projects{width:100%;min-height:44px;margin:0;padding:12px 10px;gap:7px;font-size:12px;white-space:nowrap}
-.creation-entry #start-solid{grid-column:1 / -1;justify-self:start}
 .creation-entry>span{grid-column:1 / -1}
 .creation-entry button i,.editor-header-actions #save-project i{flex-shrink:0}
 .creation-entry button svg,.editor-header-actions #save-project svg{width:16px;height:16px}
 .editor-header-actions #save-project{gap:6px}
+.filters #start-solid .solid-color-swatch{width:15px;height:15px;flex:none;padding:0;margin:0;background:#78947a;border:1px solid #234e3c44;border-radius:3px}
