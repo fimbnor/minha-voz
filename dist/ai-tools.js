@@ -1,5 +1,24 @@
 'use strict';
-let aiReady=false,aiRunning=false,aiCandidate=null,aiPrevious=null;
+let aiReady=false,aiRunning=false,aiCandidate=null;
+const aiEdits=new Map();
+const aiLayerKeys=['campaign','palette','photo','background','format','text','signature','scale','x','y','gray','font','textSize','cutout','logo','logoSize','logoPosition','logoOpacity','logoPlate'];
+function aiScope(){return JSON.stringify([state.campaign.id,state.format,state.format==='carousel'?state.slide:0]);}
+function aiLayers(){return aiLayerKeys.map(key=>state[key]);}
+function sameAILayers(a,b){return a.length===b.length&&a.every((value,i)=>value===b[i]);}
+function aiSnapshot(){return {scope:aiScope(),layers:aiLayers(),image:state.aiCard};}
+function sameAISnapshot(a,b){return a.scope===b.scope&&a.image===b.image&&sameAILayers(a.layers,b.layers);}
+function clearAICandidate(){aiCandidate=null;$('#ai-result').hidden=true;$('#ai-result-image').removeAttribute('src');}
+// Each format/page owns its approved edits. Manual layer changes resume the base composition.
+function syncAICard(){
+ const scope=aiScope();let edit=aiEdits.get(scope);
+ if(edit&&!sameAILayers(edit.layers,aiLayers())){
+  aiEdits.delete(scope);edit=null;
+  toast('Ajuste manual aplicado aos elementos originais do card.');
+ }
+ state.aiCard=edit?.image||null;
+ $('#ai-undo').hidden=!edit;
+ if(aiCandidate&&!sameAISnapshot(aiCandidate.snapshot,aiSnapshot()))clearAICandidate();
+}
 async function checkAI(){
  if(aiRunning)return;
  const button=$('#ai-generate');
@@ -8,7 +27,7 @@ async function checkAI(){
   const r=await fetch('/api/config',{cache:'no-store',signal:AbortSignal.timeout(15000)});
   if(!r.ok)throw Error(r.status===401?'Sua sessão expirou. Recarregue a página e entre novamente.':'Não foi possível verificar o Gemini. Recarregue a página para tentar novamente.');
   const config=await r.json();aiReady=config.available===true;
-  if(aiReady){$('#prompt-status').textContent='Geração habilitada no servidor. Autorize o envio ao Google e confira o resultado antes de usar.';}
+  if(aiReady){$('#prompt-status').textContent='Gemini pronto para editar o card da prévia. Autorize o envio e descreva o que deseja mudar.';}
   else{
    const missing=Array.isArray(config.missingConfig)?config.missingConfig:[];
    const details=[];
@@ -17,41 +36,63 @@ async function checkAI(){
    $('#prompt-status').textContent=details.length?'Gemini indisponível: '+details.join('; ')+'. Faça isso em Environment do serviço no Render, salve e faça o deploy.':'Gemini indisponível. Confira GEMINI_API_KEY e AI_ENABLED=true no serviço do Render e faça o deploy.';
   }
  }catch(e){aiReady=false;$('#prompt-status').textContent=e.name==='TimeoutError'?'O servidor demorou para responder. Recarregue a página para verificar novamente.':e.message||'Não foi possível verificar a configuração do Gemini.';}
- button.disabled=!aiReady;button.textContent=aiReady?'Gerar com Gemini':'Gemini indisponível';
+ button.disabled=!aiReady;button.textContent=aiReady?'Editar card com Gemini':'Gemini indisponível';
  if(!aiReady)button.title=$('#prompt-status').textContent;
 }
 window.addEventListener('focus',()=>{if(!aiReady&&!aiRunning)checkAI();});
 function aiNotice(message,field){const status=$('#prompt-status');status.textContent=message;status.scrollIntoView({block:'nearest'});if(field)$(field).focus();}
-function aiSource(){const c=photoCanvas(originalPhoto,1600),url=c.toDataURL('image/jpeg',.9);return {mimeType:'image/jpeg',data:url.split(',')[1]};}
+async function aiSource(snapshot){
+ await document.fonts.ready;
+ if(!state.aiCard&&state.format!=='instagram-profile'){
+  catalogBackground(state.campaign);
+  const background=backgroundCache.get(state.campaign.backgroundUrl);
+  if(background)await background.decode();
+ }
+ renderPreview();
+ if(!sameAISnapshot(snapshot,aiSnapshot()))throw Error('O card mudou. Confira a prévia e envie o pedido novamente.');
+ const preview=$('#preview-canvas'),canvas=document.createElement('canvas');
+ canvas.width=preview.width;canvas.height=preview.height;
+ canvas.getContext('2d').drawImage(preview,0,0);
+ let data=canvas.toDataURL('image/png').split(',')[1];
+ while(data.length>Math.floor(5*1024*1024/3)*4){
+  const smaller=document.createElement('canvas');smaller.width=Math.round(canvas.width*.8);smaller.height=Math.round(canvas.height*.8);
+  smaller.getContext('2d').drawImage(canvas,0,0,smaller.width,smaller.height);
+  canvas.width=smaller.width;canvas.height=smaller.height;canvas.getContext('2d').drawImage(smaller,0,0);
+  data=canvas.toDataURL('image/png').split(',')[1];
+ }
+ return {mimeType:'image/png',data};
+}
 $('#ai-generate').onclick=async()=>{
  if(!aiReady||aiRunning)return;
- const mode=$('#ai-mode').value,prompt=$('#ai-prompt').value.trim();
- if(!prompt){aiNotice("Descreva os detalhes que deseja na imagem.","#ai-prompt");return;}
- if(!$('#ai-consent').checked){aiNotice("Autorize o envio ao Google para continuar.","#ai-consent");return;}
- if(mode!=='background'&&!originalPhoto){aiNotice("Envie uma foto no passo Sua foto.",null);return;}
- if(mode!=='background'&&state.campaign.id==='bebe'){aiNotice("Em Meu Bebê, escolha Criar cenário para preservar a foto original.","#ai-mode");return;}
- aiRunning=true;$('#ai-generate').setAttribute('aria-busy','true');aiCandidate=null;$('#ai-result').hidden=true;$('#ai-generate').disabled=true;$('#ai-generate').textContent='Gerando… aguarde';$('#prompt-status').textContent='Pedido enviado. Você pode aguardar até dois minutos. Não há repetição automática.';
- const revision=photoRevision,campaign=state.campaign.id;
+ const prompt=$('#ai-prompt').value.trim();
+ if(!prompt){aiNotice('Descreva o que deseja mudar no card atual.','#ai-prompt');return;}
+ if(!$('#ai-consent').checked){aiNotice('Autorize o envio do card ao Google para continuar.','#ai-consent');return;}
+ renderPreview();const snapshot=aiSnapshot();
+ aiRunning=true;$('#ai-generate').setAttribute('aria-busy','true');clearAICandidate();$('#ai-generate').disabled=true;$('#ai-generate').textContent='Editando… aguarde';$('#prompt-status').textContent='Preparando o card atual. A edição pode levar até dois minutos.';
  try{
-  const payload={mode,prompt,consent:true,category:campaign,aspectRatio:state.format==='story'?'9:16':['square','profile','instagram-profile'].includes(state.format)?'1:1':'4:5'};
-  if(mode!=='background')payload.image=aiSource();
+  const image=await aiSource(snapshot);
+  const payload={mode:'card',prompt,consent:true,category:state.campaign.id,aspectRatio:state.format==='story'?'9:16':['square','profile','instagram-profile'].includes(state.format)?'1:1':'4:5',image};
+  $('#prompt-status').textContent='Card enviado para edição. Aguarde até dois minutos. Não há repetição automática.';
   const r=await fetch('/api/images/edit',{method:'POST',headers:{'Content-Type':'application/json','X-Request-ID':crypto.randomUUID()},body:JSON.stringify(payload),signal:AbortSignal.timeout(130000)});
-  const data=await r.json();if(!r.ok)throw Error(data.error||'Não foi possível gerar.');
-  if(revision!==photoRevision||campaign!==state.campaign.id)throw Error('A foto ou o modelo mudou. O resultado não foi aplicado.');
+  const data=await r.json();if(!r.ok)throw Error(data.error||'Não foi possível editar o card.');
   const img=new Image();img.src=`data:${data.image.mimeType};base64,${data.image.data}`;await img.decode();
-  aiCandidate={img,mode,revision,campaign};$('#ai-result-image').src=img.src;$('#ai-result').hidden=false;$('#prompt-status').textContent='Imagem recebida. Confira rostos, mãos e detalhes. Aplique somente se estiver de acordo.';
- }catch(e){$('#prompt-status').textContent=e.name==='TimeoutError'?'Tempo de espera encerrado. O provedor pode ter processado o pedido; não repetimos a chamada.':e.message||'Falha na conexão. A foto original permanece disponível.';}
- finally{$('#ai-generate').removeAttribute('aria-busy');aiRunning=false;$('#ai-generate').disabled=!aiReady;$('#ai-generate').textContent='Gerar com Gemini';}
+  renderPreview();
+  if(!sameAISnapshot(snapshot,aiSnapshot()))throw Error('O card mudou durante a edição. O resultado não foi aplicado. Envie um novo pedido a partir da prévia atual.');
+  aiCandidate={img,snapshot};$('#ai-result-image').src=img.src;$('#ai-result').hidden=false;$('#prompt-status').textContent='Confira o card editado, incluindo textos, logotipos e rostos. Aplique somente se estiver de acordo.';
+ }catch(e){$('#prompt-status').textContent=e.name==='TimeoutError'?'Tempo de espera encerrado. O provedor pode ter processado o pedido; não repetimos a chamada.':e.message||'Falha na conexão. Seu card foi mantido.';}
+ finally{$('#ai-generate').removeAttribute('aria-busy');aiRunning=false;$('#ai-generate').disabled=!aiReady;$('#ai-generate').textContent='Editar card com Gemini';}
 };
-$('#ai-discard').onclick=()=>{aiCandidate=null;$('#ai-result').hidden=true;$('#ai-result-image').removeAttribute('src');};
+$('#ai-discard').onclick=clearAICandidate;
 $('#ai-accept').onclick=()=>{
- if(!aiCandidate)return;if(aiCandidate.revision!==photoRevision||aiCandidate.campaign!==state.campaign.id){toast('A foto ou o modelo mudou. Gere outra opção.');return;}
- aiPrevious={background:state.background,aiArtwork:state.aiArtwork};
- if(aiCandidate.mode==='background'){state.background=aiCandidate.img;state.aiArtwork=null;$('#remove-background').hidden=false;}else state.aiArtwork=aiCandidate.img;
- $('#ai-result').hidden=true;$('#ai-result-image').removeAttribute('src');aiCandidate=null;$('#ai-undo').hidden=false;renderPreview();toast('Resultado aplicado. Texto e logotipo continuam editáveis.');
+ if(!aiCandidate)return;
+ if(!sameAISnapshot(aiCandidate.snapshot,aiSnapshot())){clearAICandidate();toast('O card mudou. Gere outra edição a partir da prévia atual.');return;}
+ const {img,snapshot}=aiCandidate;
+ aiEdits.set(snapshot.scope,{image:img,layers:snapshot.layers,previous:aiEdits.get(snapshot.scope)||null});
+ clearAICandidate();renderPreview();toast('Card editado aplicado. O próximo pedido usará esta versão.');
 };
-$('#ai-undo').onclick=()=>{if(!aiPrevious)return;Object.assign(state,aiPrevious);$('#remove-background').hidden=!state.background;aiPrevious=null;$('#ai-undo').hidden=true;renderPreview();};
-// A new source photo invalidates any previously approved full-image transformation.
-$('#photo-input').addEventListener('change',()=>{state.aiArtwork=null;aiCandidate=null;aiPrevious=null;$('#ai-result').hidden=true;$('#ai-undo').hidden=true;});
-$('#remove-photo').addEventListener('click',()=>{state.aiArtwork=null;aiCandidate=null;renderPreview();});
-checkAI();
+$('#ai-undo').onclick=()=>{
+ const scope=aiScope(),edit=aiEdits.get(scope);if(!edit)return;
+ if(edit.previous)aiEdits.set(scope,edit.previous);else aiEdits.delete(scope);
+ clearAICandidate();renderPreview();toast('Edição por IA desfeita.');
+};
+syncAICard();checkAI();

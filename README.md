@@ -34,15 +34,17 @@ O servidor usa `PORT` fornecido pelo Render e escuta em `0.0.0.0`. Cadastre `PUB
 
 Após a implantação, abra o endereço HTTPS e entre com o usuário/senha de teste. A chave Gemini nunca será solicitada na tela do aplicativo. Não há serviço Render ou repositório GitHub novo criado por esta entrega.
 
-## Modos Gemini
+## Editar o card atual com Gemini
 
-- **Criar cenário:** envia somente o prompt, sem a foto. A imagem retorna para composição com a foto original. Use o recorte local para integrar a pessoa ao cenário.
-- **Fotografia profissional natural:** envia a foto original reduzida e o prompt, pedindo ajustes naturais.
-- **Transformar fotografia:** envia a foto original e pede as mudanças descritas.
+O botão **Editar card com Gemini** envia uma imagem PNG da composição completa da prévia: modelo, fundo escolhido, foto com os ajustes locais, frase, assinatura e logotipo. O prompt descreve as alterações sobre essa composição. A imagem é reduzida apenas se necessário para respeitar o limite de 5 MB. O servidor exige `mode: "card"` e uma imagem; pedidos antigos de geração sem composição são rejeitados.
 
-O consentimento precisa ser marcado antes de gerar. O resultado aparece separado para conferência; Usar este resultado aplica a imagem, Descartar mantém o card, Desfazer restaura a aplicação anterior. Textos e logotipos são renderizados pelo Canvas depois, sem serem enviados ao Gemini.
+O resultado aparece separado para conferência. **Usar este resultado** substitui a imagem completa da prévia e da exportação, sem reaplicar por cima os elementos originais. **Descartar** mantém o card atual. O próximo pedido usa a última versão aprovada como base; **Desfazer** retorna à edição aprovada anterior e, depois, à composição original.
 
-Em Meu Bebê, o servidor e a interface limitam a operação a cenário. A preservação de identidade em modos generativos é um objetivo do prompt, não uma garantia do modelo. Confira rostos, mãos, proporções e objetos antes de usar.
+As versões são separadas por modelo, formato e página do carrossel. Mudanças no card durante o pedido ou antes da aprovação invalidam o resultado antigo. A captura aguarda as fontes e o fundo do modelo, para não enviar uma composição incompleta.
+
+O resultado do Gemini é uma imagem única: suas alterações não são convertidas em camadas editáveis. Continue modificando essa versão por novos prompts, ou desfaça para editar os elementos originais. Um ajuste manual retoma esses elementos e substitui as versões da IA daquela composição; essa transição é explicada na interface.
+
+O consentimento autoriza enviar o card completo, incluindo texto e logotipo, ao Google. Confira texto, marcas, rostos, mãos e proporções antes de aplicar. Em Meu Bebê, o prompt do servidor pede ajustes apenas de cenário e decoração e preservação da aparência da criança. A fidelidade à imagem de entrada depende do modelo; as instruções não são uma garantia de identidade ou de reprodução exata.
 
 ## API
 
@@ -50,7 +52,7 @@ Em Meu Bebê, o servidor e a interface limitam a operação a cenário. A preser
 - `GET /api/config`: configuração pública após autenticação, sem chave.
 - `POST /api/images/edit`: autenticação HTTP Basic, origem exata, JSON e identificador único em `X-Request-ID`.
 
-Corpo: `{mode,prompt,consent:true,category,aspectRatio,image?}`. `mode` aceita `background`, `professional` e `transform`; `aspectRatio` aceita `4:5`, `9:16` ou `1:1`; `image` é `{mimeType,data}` com bytes base64 PNG/JPG/WebP de até 5 MB. `category` é o ID do modelo do editor. Resposta: `{image:{mimeType,data},model}`.
+Corpo: `{mode:"card",prompt,consent:true,category,aspectRatio,image}`. `aspectRatio` aceita `4:5`, `9:16` ou `1:1`; `image` é obrigatório e contém a composição atual em `{mimeType,data}`, com bytes base64 PNG/JPG/WebP de até 5 MB. `category` é o ID do modelo do editor. Resposta: `{image:{mimeType,data},model}`.
 
 O servidor chama a Gemini Interactions API por HTTPS, com chave no cabeçalho `x-goog-api-key`, `store:false` e formato de imagem 1K. O identificador do modelo é configurável no servidor, não pelo visitante. Se o modelo não estiver disponível na conta, a interface mostra erro; não troca automaticamente para outro modelo.
 
@@ -70,9 +72,9 @@ Recorte experimental de pessoas com MediaPipe Tasks Vision 0.10.21 e Selfie Segm
 
 ## Validação desta entrega
 
-20 testes automatizados com provedor simulado: login, arquivos privados, configuração sem vazamento, geração/retorno de imagem, cenário sem foto, validações, origem, falhas, cota, timeout, falta de imagem, duplicação, concorrência e tamanho da requisição. Sintaxe dos scripts do navegador verificada.
+41 testes automatizados com provedor simulado: captura da composição, edição sequencial, aplicação sem sobreposição de elementos, descarte, desfazer, invalidação de resultados antigos, isolamento de páginas/formatos/modelos, inicialização com o catálogo atual, consentimento, rejeição do fluxo antigo e validações da API, além dos testes de autenticação, privacidade, erros, cotas e recorte de logotipo. Sintaxe dos scripts do navegador verificada.
 
-Não foi usada uma chave real, não houve chamada real ao Gemini e não houve teste completo no Render. A qualidade visual da geração, acesso ao modelo, faturamento e compatibilidade em aparelhos reais precisam ser confirmados depois. O teste de upload no navegador foi anteriormente negado pelo controle de permissão e não foi contornado.
+Não foi usada uma chave real, não houve chamada real ao Gemini e não houve teste completo no Render. A qualidade visual da geração, acesso ao modelo, faturamento e compatibilidade em aparelhos reais precisam ser confirmados depois. A inicialização dos scripts foi testada em DOM simulado. O teste visual em navegador não foi executado porque o Chromium não está instalado neste ambiente.
 
 ## Documentação da integração
 
