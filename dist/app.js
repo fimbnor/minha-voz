@@ -199,7 +199,7 @@ function initHero(){
  // One model per category, taken from the current catalog rather than old IDs.
  const slides=[...new Map(campaigns.map(c=>[c.category,c])).values()];
  let index=Math.max(0,slides.findIndex(c=>c.category==='Amor')),current=slides[index];
- const examples={'Amor':'casal','Mulheres':'mulher','Conquistas':'homem'};
+ const examples={'Amor':'casal','Mulheres':'mulher','Conquistas':'homem','Estilo de Vida':'loira','Cidadania':'homem-negro','Bem-estar':'ruiva','Hobbies':'nerd'};
  const exampleImages={};
  Object.entries(examples).forEach(([category,name])=>{
   const img=new Image();exampleImages[category]=img;
