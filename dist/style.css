@@ -472,3 +472,11 @@ details[open]>summary::after{content:'−'}
 .photo-layer-tile #photo-layer-thumb{width:100%;height:100%;object-fit:cover}
 .photo-layer-tile #photo-layer-camera{width:26px;height:26px}
 .photo-layer-tile [hidden]{display:none!important}
+/* Keep the primary home actions together, including on narrow phones. */
+.creation-entry{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));max-width:460px;gap:10px}
+.creation-entry #start-creation,.creation-entry #open-projects{width:100%;min-height:44px;margin:0;padding:12px 10px;gap:7px;font-size:12px;white-space:nowrap}
+.creation-entry #start-solid{grid-column:1 / -1;justify-self:start}
+.creation-entry>span{grid-column:1 / -1}
+.creation-entry button i,.editor-header-actions #save-project i{flex-shrink:0}
+.creation-entry button svg,.editor-header-actions #save-project svg{width:16px;height:16px}
+.editor-header-actions #save-project{gap:6px}
