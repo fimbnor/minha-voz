@@ -215,6 +215,12 @@ function initHero(){
 // Feature the new cause models while retaining every original model in the catalog.
  const featuredCauseIds={'Causas':'consciencia-negra-voz','Meio Ambiente':'proteger-a-floresta','Mulheres':'direitos-das-mulheres'};
  slides.forEach((item,i)=>{const id=featuredCauseIds[item.category];if(id)slides[i]=campaigns.find(c=>c.id===id)||item;});
+
+ const petExamples=['cachorro-golden','cachorro-caramelo','cachorro-dachshund','gato-tigrado','gato-preto-branco','gato-laranja','papagaio-verde','calopsita-cinza','calopsita-branca'];
+ for(const [category,names] of [['Pets',petExamples.slice(0,5)],['Proteção Animal',petExamples.slice(5)]]){
+  const position=slides.findIndex(c=>c.category===category);
+  if(position>=0){const base=slides[position];slides.splice(position,1,...names.map(name=>({...base,heroExample:name})));}
+ }
  let index=Math.max(0,slides.findIndex(c=>c.category==='Amor')),current=slides[index];
  const examples={'Amor':'casal','Mulheres':'mulher-luta','Causas':'mulher-luta','Meio Ambiente':'homem-luta','Conquistas':'homem','Estilo de Vida':'loira','Cidadania':'homem-negro','Bem-estar':'ruiva','Hobbies':'nerd'};
  const exampleImages={};
@@ -223,6 +229,9 @@ function initHero(){
   img.onload=()=>{if(current.category===category&&heroRenderer)heroRenderer();};
   img.src='/assets/hero-people/'+name+'.webp';
  });
+
+ const petImages={};
+ petExamples.forEach(name=>{const img=new Image();petImages[name]=img;img.onload=()=>{if(current.heroExample===name&&heroRenderer)heroRenderer();};img.src='/assets/hero-pets/'+name+'.webp';});
  let timer,progress,transition,frame,paused=reduced.matches,hovered=false,focused=false,inView=true;
  const poses=[[-14,-8,-8],[18,4,7],[-8,12,-4],[14,-12,10]];
  const pauseButton=$('#hero-pause');
@@ -231,7 +240,7 @@ function initHero(){
  function select(next,animate=true){
   index=(next+slides.length)%slides.length;current=slides[index];
   const c=current,p=palettes[c.color],pose=poses[index%poses.length];
-  heroBackgroundUrl=c.backgroundUrl;heroRenderer=()=>{const photo=exampleImages[current.category];drawCard(canvas,current,photo?.complete&&photo.naturalWidth?{photo,cutout:true}:{});};heroRenderer();
+  heroBackgroundUrl=c.backgroundUrl;heroRenderer=()=>{const photo=current.heroExample?petImages[current.heroExample]:exampleImages[current.category];drawCard(canvas,current,photo?.complete&&photo.naturalWidth?{photo,cutout:true}:{});};heroRenderer();
   canvas.setAttribute('aria-label','Prévia do modelo: '+c.name);
   card.setAttribute('aria-label','Personalizar modelo de '+c.category);
   $('#hero-theme').textContent=c.category;
