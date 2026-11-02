@@ -1,6 +1,6 @@
 'use strict';
 // Preserve panel IDs so projects saved with the original editor still resume correctly.
-const CREATION_LABELS={0:'Formato',1:'Fundo',2:'Foto e logotipo',3:'Texto e assinatura',6:'Edição com IA',4:'Baixar'};
+const CREATION_LABELS={0:'Formato',1:'Fundo',2:'Retrato e logotipo',3:'Texto e assinatura',6:'Edição com IA',4:'Baixar'};
 function creationOrder(){return [0,2,3,6,4];}
 function syncFlowUI(){
  const order=creationOrder(),step=Number(state.step),position=order.indexOf(step);
@@ -12,7 +12,7 @@ function syncFlowUI(){
  $('#flow-back').hidden=step===0;
  $('#flow-next').hidden=step===4;
  const next=order[position+1];
- $('#flow-next').textContent={2:'Adicionar foto e logotipo',3:'Editar texto',6:'Editar com IA',4:'Conferir e baixar'}[next]||'';
+ $('#flow-next').textContent={2:'Adicionar retrato e logotipo',3:'Editar texto',6:'Editar com IA',4:'Conferir e baixar'}[next]||'';
  $('#editor').classList.toggle('choosing-format',step===0);
  document.querySelector('.editor-navigation [data-step="'+step+'"]')?.scrollIntoView({block:'nearest',inline:'nearest'});
  const formats={feed:'Post',story:'Story',profile:'Post quadrado',square:'Post quadrado','instagram-profile':'Foto de perfil',photo:'Foto em destaque',carousel:'Carrossel'};
@@ -38,7 +38,7 @@ syncFlowUI();
 function syncBaseOptions(){
  const solid=state.backgroundMode==='color',blank=solid&&state.backgroundColor.toLowerCase()==='#ffffff';
  $('#model-library').hidden=solid;
- $('#base-choice-status').textContent=blank?'Base branca, sem modelo. Adicione sua foto e mensagem nas próximas etapas.':solid?'Sua foto e seus textos serão combinados com essa cor. A próxima etapa é Foto e logotipo.':'Base escolhida. Agora defina o formato do seu card.';
+ $('#base-choice-status').textContent=blank?'Base branca, sem modelo. Adicione sua foto e mensagem nas próximas etapas.':solid?'Sua foto e seus textos serão combinados com essa cor. A próxima etapa é Retrato e logotipo.':'Base escolhida. Agora defina o formato do seu card.';
  syncFlowUI();
 }
 function chooseBaseColor(color,{blank=false,preserveColors=false}={}){

@@ -7,7 +7,7 @@ function syncBackgroundBlendUI(){
  $('#blend-base-weight').textContent='Base '+(100-amount)+'%';
  $('#blend-overlay-weight').textContent='Nova imagem '+amount+'%';
  $('#background-blend').setAttribute('aria-valuetext','Base '+(100-amount)+'%, nova imagem '+amount+'%');
- $('#background-blend-upload-label').textContent=page.backgroundOverlay?'Trocar imagem mesclada':'Adicionar imagem para mesclar';
+ $('#background-blend-upload-label').textContent=page.backgroundOverlay?'Trocar fundo mesclado':'Adicionar fundo para mesclar';
  $('#background-blend-status').textContent=backgroundBlendPending.has(page.id)?'Carregando imagem…':backgroundBlendMessages.get(page.id)||'';
  if(page.backgroundOverlay){
   const base=$('#blend-base-thumb'),overlay=$('#blend-overlay-thumb'),ratio=$('#preview-canvas').height/$('#preview-canvas').width;
