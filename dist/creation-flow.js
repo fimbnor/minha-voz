@@ -1,18 +1,18 @@
 'use strict';
 // Preserve panel IDs so projects saved with the original editor still resume correctly.
 const CREATION_LABELS={0:'Formato',1:'Fundo',2:'Foto e logotipo',3:'Texto e assinatura',6:'Edição com IA',4:'Baixar'};
-function creationOrder(){return state.backgroundMode==='color'?[0,2,3,6,4]:[0,1,2,3,6,4];}
+function creationOrder(){return [0,2,3,6,4];}
 function syncFlowUI(){
  const order=creationOrder(),step=Number(state.step),position=order.indexOf(step);
  $('#format-step-title').textContent='Escolha o formato';
  $('#format-intro').textContent='Escolha onde vai usar seu card.';
+ $('#chosen-base-name').textContent=state.backgroundMode==='color'?(palettes.find(p=>p.bg===state.backgroundColor)?.name||'Cor sólida'):state.background?'Minha imagem':state.campaign.name;
  $('#flow-progress').textContent=`Etapa ${position+1} de ${order.length} · ${CREATION_LABELS[step]}`;
  if(step===6)$('#ai-edit-options').open=true;
  $('#flow-back').hidden=step===0;
  $('#flow-next').hidden=step===4;
  const next=order[position+1];
- $('#flow-next').textContent={1:'Escolher fundo',2:'Adicionar foto e logotipo',3:'Editar texto',6:'Editar com IA',4:'Conferir e baixar'}[next]||'';
- $('#model-navigation-step').hidden=state.backgroundMode==='color';
+ $('#flow-next').textContent={2:'Adicionar foto e logotipo',3:'Editar texto',6:'Editar com IA',4:'Conferir e baixar'}[next]||'';
  $('#editor').classList.toggle('choosing-format',step===0);
  document.querySelector('.editor-navigation [data-step="'+step+'"]')?.scrollIntoView({block:'nearest',inline:'nearest'});
  const formats={feed:'Post',story:'Story',profile:'Post quadrado',square:'Post quadrado','instagram-profile':'Foto de perfil',photo:'Foto em destaque',carousel:'Carrossel'};
@@ -38,7 +38,7 @@ syncFlowUI();
 function syncBaseOptions(){
  const solid=state.backgroundMode==='color',blank=solid&&state.backgroundColor.toLowerCase()==='#ffffff';
  $('#model-library').hidden=solid;
- $('#base-choice-status').textContent=blank?'Base branca, sem modelo. Adicione sua foto e mensagem nas próximas etapas.':solid?'Sua foto e seus textos serão combinados com essa cor. A próxima etapa é Foto e logotipo.':'Na próxima etapa, escolha um modelo ou envie sua própria imagem de fundo.';
+ $('#base-choice-status').textContent=blank?'Base branca, sem modelo. Adicione sua foto e mensagem nas próximas etapas.':solid?'Sua foto e seus textos serão combinados com essa cor. A próxima etapa é Foto e logotipo.':'Base escolhida. Agora defina o formato do seu card.';
  syncFlowUI();
 }
 function chooseBaseColor(color,{blank=false,preserveColors=false}={}){
@@ -73,3 +73,18 @@ function syncPhotoCompositionPreview(){
  if(state.photo){const ctx=photo.getContext('2d');ctx.clearRect(0,0,photo.width,photo.height);drawCover(ctx,state.photo,0,0,photo.width,photo.height);}
 }
 syncPhotoCompositionPreview();
+
+$('#home-background-input').onchange=async e=>{
+ const file=e.target.files[0];if(!file)return;
+ const revision=++homeBackgroundUploadRevision,status=$('#home-background-status');
+ status.hidden=false;status.textContent='Carregando sua imagem…';
+ try{
+  const image=await loadUpload(file);
+  if(!image||revision!==homeBackgroundUploadRevision)return;
+  openEditor(campaigns.find(c=>c.id==='amor')||campaigns[0],{background:image});
+  status.hidden=true;status.textContent='';
+ }catch(error){if(revision===homeBackgroundUploadRevision)status.textContent=error.message;}
+ finally{e.target.value='';}
+};
+
+$('#change-home-base').onclick=()=>{closeEditor();$('#start-creation').onclick();};
