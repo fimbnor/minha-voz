@@ -30,7 +30,7 @@ function syncEditorFields(){
  if(typeof syncChoiceTiles==='function')syncChoiceTiles();
  $('#signature-plate').checked=state.signaturePlate;$('#photo-gray').checked=state.gray;$('#logo-plate').checked=state.logoPlate;
  $('#char-count').textContent=state.text.length+'/100';$('#prompt-count').textContent=state.aiPrompt.length+'/1500';
- $('#upload-label').textContent=state.photo?'Trocar minha foto no card':'Adicionar minha foto ao card';$('#remove-photo').hidden=!state.photo;$('#photo-controls').hidden=!state.photo;
+ $('#upload-label').textContent=state.photo?'Trocar foto da pessoa ou animal':'Adicionar foto de pessoa ou animal';$('#remove-photo').hidden=!state.photo;$('#photo-controls').hidden=!state.photo;
  $('#remove-background').hidden=state.backgroundMode==='image'&&!state.background;$('#logo-controls').hidden=!state.logo;
  if(typeof restorePhotoTools==='function')restorePhotoTools();if(typeof restoreLogoTools==='function')restoreLogoTools();
 }
