@@ -1,7 +1,7 @@
 'use strict';
 let aiReady=false,aiRunning=false,aiCandidate=null;
 const aiEdits=new Map();
-const aiLayerKeys=['pageId','campaign','palette','photo','background','backgroundMode','backgroundColor','textColor','signatureColor','signaturePlate','format','text','signature','scale','x','y','rotation','gray','font','textSize','textX','textY','textRotation','cutout','logo','logoSize','logoPosition','logoOpacity','logoPlate'];
+const aiLayerKeys=['pageId','campaign','palette','photo','background','backgroundOverlay','backgroundBlend','backgroundMode','backgroundColor','textColor','signatureColor','signaturePlate','format','text','signature','scale','x','y','rotation','gray','font','textSize','textX','textY','textRotation','cutout','logo','logoSize','logoPosition','logoOpacity','logoPlate'];
 function aiScope(){return JSON.stringify([state.pageId||state.campaign.id,state.format,state.pageId?0:state.format==='carousel'?state.slide:0]);}
 function resetAIEdits(){aiEdits.clear();clearAICandidate();state.aiCard=null;}
 function carryAICardToFormat(image){const scope=aiScope();if(image)aiEdits.set(scope,{image,layers:aiLayers(),previous:aiEdits.get(scope)||null});else aiEdits.delete(scope);state.aiCard=image||null;}

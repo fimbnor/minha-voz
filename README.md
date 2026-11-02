@@ -108,3 +108,7 @@ Na home, o usuário escolhe um modelo ou Usar cor sólida. A paleta na home tamb
 A posição da mensagem usa deslocamentos relativos ao tamanho do card, com rotação em torno do bloco de texto. Os ajustes funcionam nos formatos retangulares e no perfil circular, ficam independentes por post e são salvos nos projetos. Restaurar posição do texto zera apenas os deslocamentos e a rotação.
 
 Projetos antigos salvos na antiga etapa Fundo retomam no formato, preservando a base. Uploads de fundo iniciados na home não substituem uma escolha de modelo feita enquanto o arquivo carregava.
+
+### Mesclar fundos
+
+Na tela Formato, abaixo da base escolhida, o painel opcional **Mesclar outra imagem** aceita uma segunda imagem. A barra mostra o peso da base e da nova imagem (0 a 100%). A mistura ocorre antes de foto, mensagem e logotipo e usa o mesmo renderizador da prévia e exportação, inclusive no perfil circular. Remover imagem mesclada preserva a base. A imagem e o percentual ficam salvos por post; os posts iniciais de um carrossel herdam a mistura, e ajustes posteriores ficam no post atual. Não há etapa adicional nem chamada de IA para a mesclagem.

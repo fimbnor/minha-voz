@@ -1,7 +1,7 @@
 'use strict';
 // Projects remain in this browser. Images and masks are stored with the editable layers.
 let currentProjectId=null;
-const projectImageKeys=['photo','photoOriginal','background','logo','logoOriginal'];
+const projectImageKeys=['photo','photoOriginal','background','backgroundOverlay','logo','logoOriginal'];
 function projectDB(){return new Promise((resolve,reject)=>{const request=indexedDB.open('minha-voz-projects',1);request.onupgradeneeded=()=>request.result.createObjectStore('projects',{keyPath:'id'});request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error);});}
 async function projectTransaction(mode,operation){const db=await projectDB();return new Promise((resolve,reject)=>{const tx=db.transaction('projects',mode);let request;try{request=operation(tx.objectStore('projects'));}catch(error){db.close();reject(error);return;}tx.oncomplete=()=>{db.close();resolve(request.result);};tx.onerror=()=>{db.close();reject(tx.error);};tx.onabort=()=>{db.close();reject(tx.error||Error('Operação cancelada'));};});}
 function imageData(image){if(!image)return null;const canvas=document.createElement('canvas');canvas.width=image.naturalWidth||image.width;canvas.height=image.naturalHeight||image.height;if(!canvas.width||!canvas.height)throw Error('Uma imagem ainda não terminou de carregar.');canvas.getContext('2d').drawImage(image,0,0);return canvas.toDataURL('image/png');}
