@@ -104,7 +104,7 @@ ctx.font=`${12*k}px Arial`;ctx.letterSpacing=`${2*k}px`;if(opts.backgroundMode!=
 let text=opts.text??c.text,maxWidth=w-margin*2,fontSize=(opts.font==='bold'?65:69)*k*(opts.textSize||100)/100;let lines;
 do{ctx.font=cardFont(opts.font,fontSize);lines=wrap(ctx,text,maxWidth);if(lines.length*fontSize*1.02<h*.39)break;fontSize-=2*k;}while(fontSize>24*k);
 let yy=opts.format==='photo'&&opts.photo?h*.71:135*k;if(h/w>1.5&&opts.format!=='photo')yy=h*.18;if(opts.format==='photo'&&opts.photo){fontSize*=.7;ctx.font=cardFont(opts.font,fontSize);lines=wrap(ctx,text,maxWidth);yy=h-fontSize*lines.length*1.1-100*k;}
-ctx.textBaseline='alphabetic';for(let i=0;i<lines.length;i++)ctx.fillText(lines[i],margin,yy+i*fontSize*1.04);
+ctx.textBaseline='alphabetic';ctx.save();transformCardText(ctx,w,h,opts,w/2,yy+(lines.length-1)*fontSize*.52-fontSize*.35);for(let i=0;i<lines.length;i++)ctx.fillText(lines[i],margin,yy+i*fontSize*1.04);ctx.restore();
 if(!opts.photo&&opts.backgroundMode!=='color'){ctx.font=`${14*k}px Arial`;ctx.fillText('SUA VOZ FAZ PARTE.',margin,yy+lines.length*fontSize*1.04+25*k);ctx.fillStyle=p.accent;ctx.fillRect(margin,yy+lines.length*fontSize*1.04+40*k,60*k,3*k);}
 drawSignature(ctx,w,h,opts);ctx.font=`${38*k}px Georgia`;ctx.textAlign='right';ctx.fillText('✳',w-margin,h-28*k);ctx.restore();drawLogo(ctx,w,h,opts);
 }
@@ -310,3 +310,8 @@ function initHero(){
 
 
 $('#reset-photo-rotation').onclick=()=>{state.rotation=0;$('#photo-rotation').value=0;$('#photo-angle').textContent='0°';renderPreview();};
+
+for(const [id,key] of [['text-x','textX'],['text-y','textY'],['text-rotation','textRotation']])$('#'+id).oninput=e=>{
+ state[key]=Number(e.target.value);syncTextPositionFields();renderPreview();
+};
+$('#reset-text-position').onclick=()=>{state.textX=0;state.textY=0;state.textRotation=0;syncTextPositionFields();renderPreview();};
