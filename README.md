@@ -112,3 +112,5 @@ Projetos antigos salvos na antiga etapa Fundo retomam no formato, preservando a 
 ### Mesclar fundos
 
 Na tela Formato, abaixo da base escolhida, o painel opcional **Mesclar outra imagem** aceita uma segunda imagem. A barra mostra o peso da base e da nova imagem (0 a 100%). A mistura ocorre antes de foto, mensagem e logotipo e usa o mesmo renderizador da prévia e exportação, inclusive no perfil circular. Remover imagem mesclada preserva a base. A imagem e o percentual ficam salvos por post; os posts iniciais de um carrossel herdam a mistura, e ajustes posteriores ficam no post atual. Não há etapa adicional nem chamada de IA para a mesclagem.
+
+A mensagem principal permite alinhamento à esquerda, ao centro ou à direita e um fundo de contraste opcional. A placa acompanha o bloco de texto ao mover e girar, com cor e opacidade próprias. A cor inicial se adapta à cor da mensagem para oferecer contraste. Os ajustes são salvos por post e usados na prévia, na composição enviada à IA e no PNG exportado.

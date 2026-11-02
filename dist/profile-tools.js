@@ -28,8 +28,7 @@ function drawInstagramProfile(canvas,c,opts){
  do{ctx.font=cardFont(opts.font,fontSize);lines=wrap(ctx,text,maxWidth);if(lines.length<=3)break;fontSize-=w*.002;}while(fontSize>w*.020);
  lines=lines.slice(0,3);ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle=opts.textColor||c.textColor||'#fff8e6';
  const top=h*.79;
- ctx.save();transformCardText(ctx,w,h,opts,w*.5,top+(lines.length-1)*fontSize*.54);
- lines.forEach((line,i)=>ctx.fillText(line,w*.5,top+i*fontSize*1.08,maxWidth));ctx.restore();
+ drawCardHeadline(ctx,w,h,opts,{lines,fontSize,left:w*.24,width:maxWidth,y:top,lineHeight:fontSize*1.08,baseline:'middle'});
  if(opts.signature)drawSignature(ctx,w,h,opts,{x:w*.5,y:h*.936,center:true,maxWidth:w*.36,size:w*.021});
  if(opts.logo){
   const box=instagramLogoRect(w,h,opts.logo.width,opts.logo.height,opts.logoSize||20,opts.logoPosition||'bottom-right');
