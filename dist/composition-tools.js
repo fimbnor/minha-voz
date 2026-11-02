@@ -11,21 +11,21 @@ function visibleCampaigns(list,{style='all',category='all',query='',onlySaved=fa
 }
 let nextPageId=0;
 const MAX_CAROUSEL_PAGES=10;
-function newPage(c){return {id:'post-'+(++nextPageId),campaign:c,palette:c.color||0,backgroundMode:'image',backgroundColor:'#183f35',background:null,text:c.text,textColor:c.textColor||'#213f33',signature:'',signatureColor:c.textColor||'#213f33',signaturePlate:true,textColorCustom:false,signatureColorCustom:false,photo:null,photoOriginal:null,photoMask:null,photoSettings:{exposure:0,contrast:0,warmth:0,saturation:0,'cutout-edge':50,'cutout-soft':12,compare:false},scale:100,x:0,y:0,rotation:0,gray:false,cutout:false,font:'editorial',textSize:100,textX:0,textY:0,textRotation:0,logo:null,logoOriginal:null,logoHasCutout:false,logoSettings:{color:'#ffffff',tolerance:12},logoSize:20,logoPosition:'bottom-right',logoOpacity:100,logoPlate:false,aiPrompt:'',photoUploadRevision:0,backgroundUploadRevision:0,logoUploadRevision:0};}
+function newPage(c){return {id:'post-'+(++nextPageId),campaign:c,palette:c.color||0,backgroundMode:'image',backgroundColor:'#183f35',background:null,backgroundOverlay:null,backgroundBlend:50,backgroundOverlayUploadRevision:0,text:c.text,textColor:c.textColor||'#213f33',signature:'',signatureColor:c.textColor||'#213f33',signaturePlate:true,textColorCustom:false,signatureColorCustom:false,photo:null,photoOriginal:null,photoMask:null,photoSettings:{exposure:0,contrast:0,warmth:0,saturation:0,'cutout-edge':50,'cutout-soft':12,compare:false},scale:100,x:0,y:0,rotation:0,gray:false,cutout:false,font:'editorial',textSize:100,textX:0,textY:0,textRotation:0,logo:null,logoOriginal:null,logoHasCutout:false,logoSettings:{color:'#ffffff',tolerance:12},logoSize:20,logoPosition:'bottom-right',logoOpacity:100,logoPlate:false,aiPrompt:'',photoUploadRevision:0,backgroundUploadRevision:0,logoUploadRevision:0};}
 function createEditorState(c){
  const s={pages:[newPage(c)],slide:0,format:'feed',step:1,aiCard:null,carouselInitialized:false};
  for(const key of Object.keys(s.pages[0]).filter(k=>k!=='id'))Object.defineProperty(s,key,{enumerable:true,get(){return s.pages[s.slide][key];},set(value){s.pages[s.slide][key]=value;}});
  Object.defineProperty(s,'pageId',{get(){return s.pages[s.slide].id;}});return s;
 }
 function activePage(){return state.pages[state.slide];}
-function carouselPage(source,text){const page=newPage(source.campaign);for(const key of ['palette','backgroundMode','backgroundColor','background','textColor','textColorCustom','signature','signatureColor','signatureColorCustom','signaturePlate','font','textSize','textX','textY','textRotation','logo','logoOriginal','logoHasCutout','logoSize','logoPosition','logoOpacity','logoPlate'])page[key]=source[key];page.logoSettings={...source.logoSettings};page.text=text??source.text;return page;}
+function carouselPage(source,text){const page=newPage(source.campaign);for(const key of ['palette','backgroundMode','backgroundColor','background','backgroundOverlay','backgroundBlend','textColor','textColorCustom','signature','signatureColor','signatureColorCustom','signaturePlate','font','textSize','textX','textY','textRotation','logo','logoOriginal','logoHasCutout','logoSize','logoPosition','logoOpacity','logoPlate'])page[key]=source[key];page.logoSettings={...source.logoSettings};page.text=text??source.text;return page;}
 function ensureCarouselPages(){if(state.carouselInitialized)return;state.carouselInitialized=true;const first=state.pages[0];while(state.pages.length<3)state.pages.push(carouselPage(first,first.text===''?'':state.pages.length===1?first.campaign.alt:first.campaign.third));}
 function setCurrentPage(index){if(index<0||index>=state.pages.length)return;state.slide=index;syncEditorFields();renderOptions();renderPreview();}
 function addCarouselPage(){if(state.pages.length>=MAX_CAROUSEL_PAGES)return;state.pages.push(carouselPage(activePage()));setCurrentPage(state.pages.length-1);}
 function removeCarouselPage(){if(state.pages.length<=2)return;state.pages.splice(state.slide,1);setCurrentPage(Math.min(state.slide,state.pages.length-1));}
 function syncEditorFields(){
  for(const [id,key] of [['headline','text'],['signature','signature'],['text-color','textColor'],['signature-color','signatureColor'],['background-color','backgroundColor'],['background-mode','backgroundMode'],['font-style','font'],['text-size','textSize'],['text-x','textX'],['text-y','textY'],['text-rotation','textRotation'],['photo-scale','scale'],['photo-x','x'],['photo-y','y'],['photo-rotation','rotation'],['logo-size','logoSize'],['logo-position','logoPosition'],['logo-opacity','logoOpacity'],['ai-prompt','aiPrompt']])$('#'+id).value=state[key];
- syncTextPositionFields();
+ syncTextPositionFields();if(typeof syncBackgroundBlendUI==='function')syncBackgroundBlendUI();
  $('#photo-angle').textContent=(state.rotation||0)+'°';
  if(typeof syncChoiceTiles==='function')syncChoiceTiles();
  $('#signature-plate').checked=state.signaturePlate;$('#photo-gray').checked=state.gray;$('#logo-plate').checked=state.logoPlate;
@@ -52,11 +52,17 @@ async function uploadCarouselPhotos(e){
  }catch(error){toast(error.message);}finally{e.target.value='';}
 }
 function drawCardBackground(ctx,w,h,c,opts={}){
- if(opts.backgroundMode==='color'){ctx.fillStyle=opts.backgroundColor||palettes[opts.palette??c.color].bg;ctx.fillRect(0,0,w,h);return;}
- if(c.nativeScene&&!opts.background){scene(ctx,w,h,c,palettes[opts.palette??c.color]);return;}
- const image=opts.background||catalogBackground(c);
- if(image){drawCover(ctx,image,0,0,w,h);return;}
- ctx.fillStyle='#edf0e5';ctx.fillRect(0,0,w,h);
+ if(opts.backgroundMode==='color'){ctx.fillStyle=opts.backgroundColor||palettes[opts.palette??c.color].bg;ctx.fillRect(0,0,w,h);}
+ else if(c.nativeScene&&!opts.background)scene(ctx,w,h,c,palettes[opts.palette??c.color]);
+ else{
+  const image=opts.background||catalogBackground(c);
+  if(image)drawCover(ctx,image,0,0,w,h);
+  else{ctx.fillStyle='#edf0e5';ctx.fillRect(0,0,w,h);}
+ }
+ if(opts.backgroundOverlay){
+  const amount=Math.max(0,Math.min(100,Number(opts.backgroundBlend??50)))/100;
+  if(amount>0){ctx.save();ctx.globalAlpha*=amount;drawCover(ctx,opts.backgroundOverlay,0,0,w,h);ctx.restore();}
+ }
 }
 function colorLuminance(hex){const rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
 function drawSignature(ctx,w,h,opts,{x=w*.0764,y=h-w*.0486,center=false,maxWidth=w*.8,size=w*.018}={}){
