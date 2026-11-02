@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {frontend} from './frontend-harness.mjs';
 
 test('creation starts with format and advances through model, photo, customization and export',async()=>{
- const e=await frontend();e.$('#start-creation').onclick();
+ const e=await frontend();e.open();
  assert.equal(e.state.step,0);assert.equal(e.$('#flow-back').hidden,true);
  e.change('#format','story');
  for(const step of [1,2,3,6,4]){
@@ -155,7 +155,7 @@ test('home solid-color entry starts without suggested copy and skips the model s
  e.change('#format','story');e.input('#background-color','#e7c746');
  e.$('#flow-next').onclick();assert.equal(e.state.step,2);assert.equal(e.state.backgroundColor,'#e7c746');
  e.$('#flow-back').onclick();assert.equal(e.state.backgroundMode,'color');
- e.$('#start-creation').onclick();assert.equal(e.state.backgroundMode,'image');
+ e.context.closeEditor();e.open();assert.equal(e.state.backgroundMode,'image');
  e.$('#flow-next').onclick();assert.equal(e.state.step,1);
 });
 
@@ -170,4 +170,17 @@ test('solid style replaces catalog with colors, waits for selection and restores
  e.selectors.get('[data-filter]').find(b=>b.dataset.filter==='all').onclick();
  assert.equal(e.$('#start-solid').attributes.get('aria-pressed'),'false');
  assert.equal(e.$('#catalog-title').textContent,'Modelos');assert.equal(e.$('#campaign-grid').children.length,modelCount);
+});
+
+test('home create action scrolls to the first choices without opening the editor or discarding the current filter',async()=>{
+ for(const reducedMotion of [true,false]){
+  const e=await frontend({reducedMotion});let scrolled,focused;
+  e.$('#campaigns').scrollIntoView=options=>{scrolled=options;};
+  e.$('#catalog-title').focus=options=>{focused=options;};
+  e.$('#start-solid').onclick();const colors=e.$('#campaign-grid').children;
+  e.$('#start-creation').onclick();
+  assert.equal(e.$('#editor').open,false);assert.equal(e.$('#campaign-grid').children,colors);
+  assert.equal(scrolled.block,'start');assert.equal(scrolled.behavior,reducedMotion?'auto':'smooth');
+  assert.equal(focused.preventScroll,true);
+ }
 });
