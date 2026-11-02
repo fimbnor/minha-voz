@@ -18,8 +18,8 @@ function createEditorState(c){
  Object.defineProperty(s,'pageId',{get(){return s.pages[s.slide].id;}});return s;
 }
 function activePage(){return state.pages[state.slide];}
-function carouselPage(source,text){const page=newPage(source.campaign);for(const key of ['palette','backgroundMode','backgroundColor','background','textColor','textColorCustom','signature','signatureColor','signatureColorCustom','signaturePlate','font','textSize','textX','textY','textRotation','logo','logoOriginal','logoHasCutout','logoSize','logoPosition','logoOpacity','logoPlate'])page[key]=source[key];page.logoSettings={...source.logoSettings};page.text=text||source.campaign.text;return page;}
-function ensureCarouselPages(){if(state.carouselInitialized)return;state.carouselInitialized=true;const first=state.pages[0];while(state.pages.length<3)state.pages.push(carouselPage(first,state.pages.length===1?first.campaign.alt:first.campaign.third));}
+function carouselPage(source,text){const page=newPage(source.campaign);for(const key of ['palette','backgroundMode','backgroundColor','background','textColor','textColorCustom','signature','signatureColor','signatureColorCustom','signaturePlate','font','textSize','textX','textY','textRotation','logo','logoOriginal','logoHasCutout','logoSize','logoPosition','logoOpacity','logoPlate'])page[key]=source[key];page.logoSettings={...source.logoSettings};page.text=text??source.text;return page;}
+function ensureCarouselPages(){if(state.carouselInitialized)return;state.carouselInitialized=true;const first=state.pages[0];while(state.pages.length<3)state.pages.push(carouselPage(first,first.text===''?'':state.pages.length===1?first.campaign.alt:first.campaign.third));}
 function setCurrentPage(index){if(index<0||index>=state.pages.length)return;state.slide=index;syncEditorFields();renderOptions();renderPreview();}
 function addCarouselPage(){if(state.pages.length>=MAX_CAROUSEL_PAGES)return;state.pages.push(carouselPage(activePage()));setCurrentPage(state.pages.length-1);}
 function removeCarouselPage(){if(state.pages.length<=2)return;state.pages.splice(state.slide,1);setCurrentPage(Math.min(state.slide,state.pages.length-1));}

@@ -90,7 +90,7 @@ test('carousel posts keep independent photos, source photos, masks, backgrounds,
  e.context.setCurrentPage(1);assert.equal(e.state.photo,photoB);assert.equal(e.state.photoOriginal,photoB);assert.equal(e.state.photoMask,null);assert.equal(e.state.signature,'@post2');assert.equal(e.state.backgroundColor,'#334455');assert.equal(e.state.logo,null);assert.equal(e.state.text,'Post B');
 });
 test('a carousel accepts multiple photos and lets each post choose a different catalog image',async()=>{
- const e=await frontend();e.open(1);e.change('#format','carousel');e.setUpload(async file=>({width:2,height:2,name:file.name}));
+ const e=await frontend();e.open(1);e.change('#format','carousel');e.context.navigateCreation(2);e.setUpload(async file=>({width:2,height:2,name:file.name}));
  await e.upload('#carousel-photo-input',[{name:'one'},{name:'two'},{name:'three'},{name:'four'}]);
  assert.equal(e.state.pages.length,4);assert.deepEqual(Array.from(e.state.pages,p=>p.photo.name),['one','two','three','four']);
  e.context.setCurrentPage(2);e.change('#page-template',e.campaigns[8].id);assert.equal(e.state.pages[2].campaign,e.campaigns[8]);assert.equal(e.state.pages[0].campaign,e.campaigns[1]);

@@ -6,14 +6,14 @@ test('creation starts with format and advances through model, photo, customizati
  const e=await frontend();e.open();
  assert.equal(e.state.step,0);assert.equal(e.$('#flow-back').hidden,true);
  e.change('#format','story');
- for(const step of [1,2,3,6,4]){
+ for(const step of [2,3,6,4]){
   e.$('#flow-next').onclick();assert.equal(e.state.step,step);
   const visible=e.selectors.get('[data-panel]').filter(p=>!p.hidden);
   assert.equal(visible.length,1);assert.equal(Number(visible[0].dataset.panel),step);
  }
  assert.equal(e.$('#flow-next').hidden,true);assert.match(e.$('#export-summary').textContent,/Story/);
  assert.equal(e.$('#preview-canvas').height,1920);
- for(const step of [6,3,2,1,0]){e.$('#flow-back').onclick();assert.equal(e.state.step,step);}
+ for(const step of [6,3,2,0]){e.$('#flow-back').onclick();assert.equal(e.state.step,step);}
  assert.equal(e.state.format,'story');
 });
 
@@ -110,13 +110,13 @@ test('initial carousel bases apply to starter pages and later changes stay on th
 
 test('solid backgrounds skip models in both directions and image selection restores that step',async()=>{
  const e=await frontend();e.open();e.change('#background-mode','color');
- assert.equal(e.$('#format-step-title').textContent,'Escolha o formato');assert.equal(e.$('#model-navigation-step').hidden,true);
+ assert.equal(e.$('#format-step-title').textContent,'Escolha o formato');
  assert.match(e.$('#flow-progress').textContent,/Etapa 1 de 5/);
  for(const step of [2,3,6,4]){e.$('#flow-next').onclick();assert.equal(e.state.step,step);}
  for(const step of [6,3,2,0]){e.$('#flow-back').onclick();assert.equal(e.state.step,step);}
- e.change('#background-mode','image');assert.equal(e.$('#model-navigation-step').hidden,false);
- assert.match(e.$('#flow-progress').textContent,/Etapa 1 de 6/);
- e.$('#flow-next').onclick();assert.equal(e.state.step,1);
+ e.change('#background-mode','image');
+ assert.match(e.$('#flow-progress').textContent,/Etapa 1 de 5/);
+ e.$('#flow-next').onclick();assert.equal(e.state.step,2);
 });
 
 test('initial solid colors and palette choices initialize carousel pages without overwriting later page edits',async()=>{
@@ -156,7 +156,7 @@ test('home solid-color entry starts without suggested copy and skips the model s
  e.$('#flow-next').onclick();assert.equal(e.state.step,2);assert.equal(e.state.backgroundColor,'#e7c746');
  e.$('#flow-back').onclick();assert.equal(e.state.backgroundMode,'color');
  e.context.closeEditor();e.open();assert.equal(e.state.backgroundMode,'image');
- e.$('#flow-next').onclick();assert.equal(e.state.step,1);
+ e.$('#flow-next').onclick();assert.equal(e.state.step,2);
 });
 
 test('solid style replaces catalog with colors, waits for selection and restores models on another style',async()=>{
@@ -183,4 +183,31 @@ test('home create action scrolls to the first choices without opening the editor
   assert.equal(scrolled.block,'start');assert.equal(scrolled.behavior,reducedMotion?'auto':'smooth');
   assert.equal(focused.preventScroll,true);
  }
+});
+
+test('home-selected model stays selected through the five steps without another background choice',async()=>{
+ const e=await frontend();e.open(2);const selected=e.state.campaign;
+ for(const step of [0,2,3,6,4]){
+  assert.equal(e.state.step,step);assert.equal(e.state.campaign,selected);
+  assert.match(e.$('#flow-progress').textContent,/de 5/);
+  if(step!==4)e.$('#flow-next').onclick();
+ }
+ e.context.navigateCreation(1);assert.equal(e.state.step,0);
+});
+
+test('own background is chosen on home once, carries to carousel and can be changed from home explicitly',async()=>{
+ const e=await frontend(),image={width:400,height:500};e.setUpload(async()=>image);
+ await e.upload('#home-background-input',[{}]);
+ assert.equal(e.state.step,0);assert.equal(e.state.background,image);assert.equal(e.state.text,'');
+ e.change('#format','carousel');assert(e.state.pages.every(p=>p.background===image&&p.text===''));
+ e.$('#flow-next').onclick();assert.equal(e.state.step,2);assert.equal(e.state.background,image);
+ e.$('#flow-back').onclick();assert.equal(e.state.background,image);
+ e.$('#change-home-base').onclick();assert.equal(e.$('#editor').open,false);
+});
+
+test('late home background upload cannot replace a more recent model selection',async()=>{
+ const e=await frontend();let finish;e.setUpload(()=>new Promise(resolve=>{finish=resolve;}));
+ const pending=e.upload('#home-background-input',[{}]);e.open(3);const selected=e.state.campaign;
+ finish({width:500,height:500});await pending;
+ assert.equal(e.state.campaign,selected);assert.equal(e.state.background,null);
 });
